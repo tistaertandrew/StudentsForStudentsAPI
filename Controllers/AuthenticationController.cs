@@ -36,11 +36,11 @@ namespace StudentsForStudentsAPI.Controllers
         }
 
         [AllowAnonymous]
-        [HttpGet("Cursus")]
+        [HttpGet("Cursus/{id}")]
         [Produces("application/json")]
-        public IActionResult GetCursus()
+        public IActionResult GetCursus(int id)
         {
-            var cursus = _context.Cursus.Include(c => c.Section).ToList();
+            var cursus = _context.Cursus.Include(c => c.Section).Where(c => c.Section.Id == id).ToList();
             return Ok(cursus);
         }
 

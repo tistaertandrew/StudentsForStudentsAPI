@@ -13,6 +13,11 @@ namespace StudentsForStudentsAPI.Models.ConfigurationFiles
                 {
                     Id = 1,
                     Label = "Technique"
+                },
+                new Section
+                {
+                    Id = 2,
+                    Label = "Economique"
                 }
                 );
         }

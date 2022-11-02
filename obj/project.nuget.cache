@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "kOuYjHrFKNbI8O8LLuMfRfI6lkOSWT6u+WW9Fce/3bsPvmNR8lZczh5xPW34o83CI0XzHvgFCBmmJjP1TDgeEg==",
+  "dgSpecHash": "eBZ/XGYY2l+gmLpSgVgJv3RDLpvO0iqHEJwBEIowOKD+M5WuzjVF0NAQ/TklCYqGHk3r9gcdIcLTq410yVziyA==",
   "success": true,
-  "projectFilePath": "C:\\b3\\Architectures Logicielles\\StudentsForStudentsAPI\\StudentsForStudentsAPI.csproj",
+  "projectFilePath": "C:\\Users\\tor08\\Desktop\\Ecole\\StudentsForStudentsAPI\\StudentsForStudentsAPI.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\tor08\\.nuget\\packages\\google.apis\\1.57.0\\google.apis.1.57.0.nupkg.sha512",
     "C:\\Users\\tor08\\.nuget\\packages\\google.apis.auth\\1.57.0\\google.apis.auth.1.57.0.nupkg.sha512",
