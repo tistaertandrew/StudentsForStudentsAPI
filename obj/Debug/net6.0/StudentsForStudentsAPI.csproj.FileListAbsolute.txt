@@ -71,3 +71,8 @@ C:\b3\Architectures Logicielles\StudentsForStudentsAPI\obj\Debug\net6.0\refint\S
 C:\b3\Architectures Logicielles\StudentsForStudentsAPI\obj\Debug\net6.0\StudentsForStudentsAPI.pdb
 C:\b3\Architectures Logicielles\StudentsForStudentsAPI\obj\Debug\net6.0\StudentsForStudentsAPI.genruntimeconfig.cache
 C:\b3\Architectures Logicielles\StudentsForStudentsAPI\obj\Debug\net6.0\ref\StudentsForStudentsAPI.dll
+C:\b3\Architectures Logicielles\StudentsForStudentsAPI\bin\Debug\net6.0\appsettings.Production.json
+C:\b3\Architectures Logicielles\StudentsForStudentsAPI\bin\Debug\net6.0\Microsoft.Extensions.DependencyModel.dll
+C:\b3\Architectures Logicielles\StudentsForStudentsAPI\bin\Debug\net6.0\Scrutor.dll
+C:\b3\Architectures Logicielles\StudentsForStudentsAPI\bin\Debug\net6.0\Swashbuckle.AspNetCore.Filters.dll
+C:\b3\Architectures Logicielles\StudentsForStudentsAPI\bin\Debug\net6.0\Swashbuckle.AspNetCore.Filters.Abstractions.dll

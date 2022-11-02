@@ -15,12 +15,14 @@ namespace StudentsForStudentsAPI.Controllers
         private readonly DatabaseContext _context;
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User> _signInManager;
+        private readonly IConfiguration _config;
 
-        public AuthenticationController(DatabaseContext context, UserManager<User> userManager, SignInManager<User> signInManager)
+        public AuthenticationController(DatabaseContext context, UserManager<User> userManager, SignInManager<User> signInManager, IConfiguration config)
         {
             _context = context;
             _userManager = userManager;
             _signInManager = signInManager;
+            _config = config;
         }
 
         [AllowAnonymous]
@@ -68,7 +70,7 @@ namespace StudentsForStudentsAPI.Controllers
                 return BadRequest(new ErrorViewModel(true, "Mot de passe invalide"));
             }
 
-            return Ok(new UserViewModel(user, Token.CreateToken(user, _userManager)));
+            return Ok(new UserViewModel(user, Token.CreateToken(user, _userManager, _config)));
         }
 
         [AllowAnonymous]

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using StudentsForStudentsAPI.Models;
 
@@ -11,9 +12,10 @@ using StudentsForStudentsAPI.Models;
 namespace StudentsForStudentsAPI.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    partial class DatabaseContextModelSnapshot : ModelSnapshot
+    [Migration("20221102105809_ajout-section-et-cursus")]
+    partial class ajoutsectionetcursus
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -174,21 +176,7 @@ namespace StudentsForStudentsAPI.Migrations
 
                     b.HasIndex("SectionId");
 
-                    b.ToTable("Cursus", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Label = "Développement d'applications",
-                            SectionId = 1
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Label = "Cybersécurité",
-                            SectionId = 1
-                        });
+                    b.ToTable("Cursus");
                 });
 
             modelBuilder.Entity("StudentsForStudentsAPI.Models.Section", b =>
@@ -205,14 +193,7 @@ namespace StudentsForStudentsAPI.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Sections", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Label = "Technique"
-                        });
+                    b.ToTable("Sections");
                 });
 
             modelBuilder.Entity("StudentsForStudentsAPI.Models.User", b =>
