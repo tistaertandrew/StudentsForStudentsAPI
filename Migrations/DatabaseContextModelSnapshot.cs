@@ -227,6 +227,9 @@ namespace StudentsForStudentsAPI.Migrations
                         .IsConcurrencyToken()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("CursusId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Email")
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
@@ -268,6 +271,8 @@ namespace StudentsForStudentsAPI.Migrations
                         .HasColumnType("nvarchar(256)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CursusId");
 
                     b.HasIndex("NormalizedEmail")
                         .HasDatabaseName("EmailIndex");
@@ -340,6 +345,17 @@ namespace StudentsForStudentsAPI.Migrations
                         .IsRequired();
 
                     b.Navigation("Section");
+                });
+
+            modelBuilder.Entity("StudentsForStudentsAPI.Models.User", b =>
+                {
+                    b.HasOne("StudentsForStudentsAPI.Models.Cursus", "Cursus")
+                        .WithMany()
+                        .HasForeignKey("CursusId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Cursus");
                 });
 #pragma warning restore 612, 618
         }

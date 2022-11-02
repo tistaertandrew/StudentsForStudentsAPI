@@ -3,8 +3,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using StudentsForStudentsAPI;
 using StudentsForStudentsAPI.Models;
 using Swashbuckle.AspNetCore.Filters;
@@ -23,7 +21,8 @@ var connectionString = Configuration.GetConnectionString("default");
 
 builder.Services.AddCors(p => p.AddPolicy("StudentsForStudents", builder =>
 {
-    builder.WithOrigins("http://localhost:3000").AllowAnyMethod().AllowAnyHeader();
+    //builder.WithOrigins("http://localhost:3000").AllowAnyMethod().AllowAnyHeader();
+    builder.WithOrigins(Configuration.GetSection("CorsURL").Value).AllowAnyMethod().AllowAnyHeader();
     //builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
 }));
 

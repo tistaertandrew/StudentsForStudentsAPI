@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using StudentsForStudentsAPI.Models;
 
 namespace StudentsForStudentsAPI.Controllers
@@ -26,6 +27,24 @@ namespace StudentsForStudentsAPI.Controllers
         }
 
         [AllowAnonymous]
+        [HttpGet("Sections")]
+        [Produces("application/json")]
+        public IActionResult GetSections()
+        {
+            var sections = _context.Sections.ToList();
+            return Ok(sections);
+        }
+
+        [AllowAnonymous]
+        [HttpGet("Cursus")]
+        [Produces("application/json")]
+        public IActionResult GetCursus()
+        {
+            var cursus = _context.Cursus.Include(c => c.Section).ToList();
+            return Ok(cursus);
+        }
+
+        [AllowAnonymous]
         [HttpPost("Google")]
         [Produces("application/json")]
         public async Task<IActionResult> Google(OAuthViewModel request)
@@ -39,8 +58,7 @@ namespace StudentsForStudentsAPI.Controllers
                     return NotFound(new ErrorViewModel(true, "Cet utilisateur n'existe pas"));
                 }
 
-                return Ok(payload);
-                //return Ok(new UserViewModel(user, Token.CreateToken(user, _userManager)));
+                return Ok(new UserViewModel(user, Token.CreateToken(user, _userManager, _config)));
             }
             catch (Exception)
             {
@@ -64,10 +82,13 @@ namespace StudentsForStudentsAPI.Controllers
                 return BadRequest(new ErrorViewModel(true, "Email invalide"));
             }
 
-            var result = await _userManager.CheckPasswordAsync(user, request.Password);
-            if (!result)
+            if (request.Password != string.Empty)
             {
-                return BadRequest(new ErrorViewModel(true, "Mot de passe invalide"));
+                var result = await _userManager.CheckPasswordAsync(user, request.Password);
+                if (!result)
+                {
+                    return BadRequest(new ErrorViewModel(true, "Mot de passe invalide"));
+                }
             }
 
             return Ok(new UserViewModel(user, Token.CreateToken(user, _userManager, _config)));
@@ -83,17 +104,28 @@ namespace StudentsForStudentsAPI.Controllers
                 return BadRequest("Informations invalides");
             }
 
-            var user = new User(); user.UserName = request.Username; user.Email = request.Email;
-            var result = await _userManager.CreateAsync(user, request.Password);
-            if (!result.Succeeded)
+            try
             {
-                return BadRequest(new ErrorViewModel(true, string.Join(" | ", result.Errors.Select(e => e.Code))));
-                //return BadRequest();
+                var user = new User();
+                user.UserName = request.Username;
+                user.Email = request.Email;
+                user.Cursus = _context.Cursus.Where(c => c.Id == request.CursusId).First();
+
+                var result = request.Password != string.Empty ? await _userManager.CreateAsync(user, request.Password) : await _userManager.CreateAsync(user);
+                if (!result.Succeeded)
+                {
+                    return BadRequest(new ErrorViewModel(true, string.Join(" | ", result.Errors.Select(e => e.Code))));
+                    //return BadRequest();
+                }
+
+                await _userManager.AddToRoleAsync(user, "Member");
+                return Ok();
+
             }
-
-            await _userManager.AddToRoleAsync(user, "Member");
-
-            return Ok();
+            catch (Exception)
+            {
+                return NotFound();
+            }
         }
     }
 }

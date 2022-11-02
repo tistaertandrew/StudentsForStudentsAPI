@@ -12,7 +12,7 @@ using StudentsForStudentsAPI.Models;
 namespace StudentsForStudentsAPI.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    [Migration("20221102093846_init")]
+    [Migration("20221102144911_init")]
     partial class init
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -157,6 +157,66 @@ namespace StudentsForStudentsAPI.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("StudentsForStudentsAPI.Models.Cursus", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<string>("Label")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("SectionId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SectionId");
+
+                    b.ToTable("Cursus", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Label = "Développement d'applications",
+                            SectionId = 1
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Label = "Cybersécurité",
+                            SectionId = 1
+                        });
+                });
+
+            modelBuilder.Entity("StudentsForStudentsAPI.Models.Section", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<string>("Label")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Sections", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Label = "Technique"
+                        });
+                });
+
             modelBuilder.Entity("StudentsForStudentsAPI.Models.User", b =>
                 {
                     b.Property<string>("Id")
@@ -168,6 +228,9 @@ namespace StudentsForStudentsAPI.Migrations
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("CursusId")
+                        .HasColumnType("int");
 
                     b.Property<string>("Email")
                         .HasMaxLength(256)
@@ -210,6 +273,8 @@ namespace StudentsForStudentsAPI.Migrations
                         .HasColumnType("nvarchar(256)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CursusId");
 
                     b.HasIndex("NormalizedEmail")
                         .HasDatabaseName("EmailIndex");
@@ -271,6 +336,28 @@ namespace StudentsForStudentsAPI.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("StudentsForStudentsAPI.Models.Cursus", b =>
+                {
+                    b.HasOne("StudentsForStudentsAPI.Models.Section", "Section")
+                        .WithMany()
+                        .HasForeignKey("SectionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Section");
+                });
+
+            modelBuilder.Entity("StudentsForStudentsAPI.Models.User", b =>
+                {
+                    b.HasOne("StudentsForStudentsAPI.Models.Cursus", "Cursus")
+                        .WithMany()
+                        .HasForeignKey("CursusId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Cursus");
                 });
 #pragma warning restore 612, 618
         }

@@ -10,6 +10,7 @@ namespace StudentsForStudentsAPI.Models
         [EmailAddress]
         public string Email { get; set; } = string.Empty;
         [Required]
+        public int CursusId { get; set; } = int.MaxValue;
         public string Password { get; set; } = string.Empty;
     }
 }
