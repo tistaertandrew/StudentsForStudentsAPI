@@ -5,43 +5,26 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using StudentsForStudentsAPI.Models;
+using StudentsForStudentsAPI.Models.ViewModels;
 
 namespace StudentsForStudentsAPI.Controllers
 {
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [Route("[controller]")]
     [ApiController]
-    public class AuthenticationController : ControllerBase
+    public class UserController : ControllerBase
     {
         private readonly DatabaseContext _context;
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User> _signInManager;
         private readonly IConfiguration _config;
 
-        public AuthenticationController(DatabaseContext context, UserManager<User> userManager, SignInManager<User> signInManager, IConfiguration config)
+        public UserController(DatabaseContext context, UserManager<User> userManager, SignInManager<User> signInManager, IConfiguration config)
         {
             _context = context;
             _userManager = userManager;
             _signInManager = signInManager;
             _config = config;
-        }
-
-        [AllowAnonymous]
-        [HttpGet("Sections")]
-        [Produces("application/json")]
-        public IActionResult GetSections()
-        {
-            var sections = _context.Sections.ToList();
-            return Ok(sections);
-        }
-
-        [AllowAnonymous]
-        [HttpGet("Cursus/{id}")]
-        [Produces("application/json")]
-        public IActionResult GetCursus(int id)
-        {
-            var cursus = _context.Cursus.Include(c => c.Section).Where(c => c.Section.Id == id).ToList();
-            return Ok(cursus);
         }
 
         [AllowAnonymous]
@@ -107,7 +90,7 @@ namespace StudentsForStudentsAPI.Controllers
             try
             {
                 var user = new User();
-                user.UserName = request.Username;
+                user.UserName = string.Format("{0} {1}", request.LastName, request.FirstName);
                 user.Email = request.Email;
                 user.Cursus = _context.Cursus.Where(c => c.Id == request.CursusId).First();
 
@@ -115,16 +98,15 @@ namespace StudentsForStudentsAPI.Controllers
                 if (!result.Succeeded)
                 {
                     return BadRequest(new ErrorViewModel(true, string.Join(" | ", result.Errors.Select(e => e.Code))));
-                    //return BadRequest();
                 }
 
                 await _userManager.AddToRoleAsync(user, "Member");
-                return Ok();
+                return Ok(new SuccessViewModel(false, "Compte créée avec succès"));
 
             }
             catch (Exception)
             {
-                return NotFound();
+                return NotFound(new ErrorViewModel(true, "Cursus invalide"));
             }
         }
     }
