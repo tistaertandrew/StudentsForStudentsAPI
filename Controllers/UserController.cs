@@ -38,7 +38,7 @@ namespace StudentsForStudentsAPI.Controllers
                 var user = await _userManager.FindByEmailAsync(payload.Email);
                 if (user == null)
                 {
-                    return NotFound(new ErrorViewModel(true, "Cet utilisateur n'existe pas"));
+                    return NotFound(new ErrorViewModel(true, payload.Email));
                 }
 
                 return Ok(new UserViewModel(user, Token.CreateToken(user, _userManager, _config)));
