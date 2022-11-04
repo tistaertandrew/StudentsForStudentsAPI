@@ -69,6 +69,20 @@ builder.Services.AddSwaggerGen(options =>
 
 var app = builder.Build();
 
+//TODO: A FIXER !!!!!!
+builder.Services.AddCors(p => p.AddPolicy("StudentsForStudents", builder =>
+{
+    if(app.Environment.IsDevelopment())
+    {
+        builder.WithOrigins(Configuration.GetSection("CorsURL").Value).AllowAnyMethod().AllowAnyHeader();
+    }
+
+    if(app.Environment.IsProduction())
+    {
+        builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
+    }
+}));
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
