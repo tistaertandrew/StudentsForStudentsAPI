@@ -30,7 +30,7 @@ namespace StudentsForStudentsAPI.Controllers
         [AllowAnonymous]
         [HttpPost("Google")]
         [Produces("application/json")]
-        public async Task<IActionResult> Google(OAuthViewModel request)
+        public async Task<ActionResult<UserViewModel>> Google(OAuthViewModel request)
         {
             try
             {

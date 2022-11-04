@@ -22,7 +22,7 @@ namespace StudentsForStudentsAPI.Controllers
         [AllowAnonymous]
         [HttpGet("Sections/{id}")]
         [Produces("application/json")]
-        public IActionResult GetSection(int id)
+        public async Task<ActionResult<Section>> GetSection(int id)
         {
             var section = _context.Sections.Where(s => s.Id == id).ToList();
             return Ok(section);
@@ -31,7 +31,7 @@ namespace StudentsForStudentsAPI.Controllers
         [AllowAnonymous]
         [HttpGet("Sections")]
         [Produces("application/json")]
-        public IActionResult GetSections()
+        public async Task<ActionResult<List<Section>>> GetSections()
         {
             var sections = _context.Sections.ToList();
             return Ok(sections);
@@ -40,7 +40,7 @@ namespace StudentsForStudentsAPI.Controllers
         [AllowAnonymous]
         [HttpGet("Cursus/{id}")]
         [Produces("application/json")]
-        public IActionResult GetCursus(int id)
+        public async Task<ActionResult<Cursus>> GetCursus(int id)
         {
             var cursus = _context.Cursus.Include(c => c.Section).Where(c => c.Section.Id == id).ToList();
             return Ok(cursus);
@@ -49,7 +49,7 @@ namespace StudentsForStudentsAPI.Controllers
         [AllowAnonymous]
         [HttpGet("Cursus")]
         [Produces("application/json")]
-        public IActionResult GetCursus()
+        public async Task<ActionResult<List<Cursus>>> GetCursus()
         {
             var cursus = _context.Cursus.ToList();
             return Ok(cursus);
