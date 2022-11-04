@@ -51,7 +51,7 @@ namespace StudentsForStudentsAPI.Controllers
         [Produces("application/json")]
         public async Task<ActionResult<List<Cursus>>> GetCursus()
         {
-            var cursus = _context.Cursus.ToList();
+            var cursus = _context.Cursus.Include(c => c.Section).ToList();
             return Ok(cursus);
         }
     }
