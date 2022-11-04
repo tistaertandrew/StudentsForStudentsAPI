@@ -22,8 +22,10 @@ var connectionString = Configuration.GetConnectionString("default");
 builder.Services.AddCors(p => p.AddPolicy("StudentsForStudents", builder =>
 {
     //builder.WithOrigins("http://localhost:3000").AllowAnyMethod().AllowAnyHeader();
-    builder.WithOrigins(Configuration.GetSection("CorsURL").Value).AllowAnyMethod().AllowAnyHeader();
-    //builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
+    //builder.WithOrigins(Configuration.GetSection("CorsURL").Value).AllowAnyMethod().AllowAnyHeader();
+
+    // /!\ A MODIFIER DES QU'ON SAIT COMMENT AJOUTER DARTAGNAN COMME ORIGINE /!\
+    builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
 }));
 
 
@@ -68,20 +70,6 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 var app = builder.Build();
-
-//TODO: A FIXER !!!!!!
-builder.Services.AddCors(p => p.AddPolicy("StudentsForStudents", builder =>
-{
-    if(app.Environment.IsDevelopment())
-    {
-        builder.WithOrigins(Configuration.GetSection("CorsURL").Value).AllowAnyMethod().AllowAnyHeader();
-    }
-
-    if(app.Environment.IsProduction())
-    {
-        builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
-    }
-}));
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
