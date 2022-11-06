@@ -62,7 +62,7 @@ namespace StudentsForStudentsAPI.Controllers
             var user = await _userManager.FindByEmailAsync(request.Email);
             if (user == null)
             {
-                return BadRequest(new ErrorViewModel(true, "Email invalide"));
+                return BadRequest(new ErrorViewModel(true, "Aucun compte n'existe avec cette adresse email"));
             }
 
             if (request.Password != string.Empty)
