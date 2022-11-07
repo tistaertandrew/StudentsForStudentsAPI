@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\tor08\\Desktop\\Ecole\\StudentsForStudentsAPI\\StudentsForStudentsAPI.csproj": {}
+    "C:\\b3\\Architectures Logicielles\\StudentsForStudentsAPI\\StudentsForStudentsAPI.csproj": {}
   },
   "projects": {
-    "C:\\Users\\tor08\\Desktop\\Ecole\\StudentsForStudentsAPI\\StudentsForStudentsAPI.csproj": {
+    "C:\\b3\\Architectures Logicielles\\StudentsForStudentsAPI\\StudentsForStudentsAPI.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\tor08\\Desktop\\Ecole\\StudentsForStudentsAPI\\StudentsForStudentsAPI.csproj",
+        "projectUniqueName": "C:\\b3\\Architectures Logicielles\\StudentsForStudentsAPI\\StudentsForStudentsAPI.csproj",
         "projectName": "StudentsForStudentsAPI",
-        "projectPath": "C:\\Users\\tor08\\Desktop\\Ecole\\StudentsForStudentsAPI\\StudentsForStudentsAPI.csproj",
+        "projectPath": "C:\\b3\\Architectures Logicielles\\StudentsForStudentsAPI\\StudentsForStudentsAPI.csproj",
         "packagesPath": "C:\\Users\\tor08\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\tor08\\Desktop\\Ecole\\StudentsForStudentsAPI\\obj\\",
+        "outputPath": "C:\\b3\\Architectures Logicielles\\StudentsForStudentsAPI\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft\\Xamarin\\NuGet\\"
