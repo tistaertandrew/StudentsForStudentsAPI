@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using StudentsForStudentsAPI.Models;
 using StudentsForStudentsAPI.Models.ViewModels;
+using System.Security.Claims;
 
 namespace StudentsForStudentsAPI.Controllers
 {
@@ -25,6 +26,20 @@ namespace StudentsForStudentsAPI.Controllers
             _userManager = userManager;
             _signInManager = signInManager;
             _config = config;
+        }
+
+        [HttpGet("WhoAmI")]
+        [Authorize]
+        [Produces("application/json")]
+        public async Task<ActionResult<UserViewModel>> WhoAmI()
+        {
+            var email = User?.FindFirstValue(ClaimTypes.Email);
+            if(email == null)
+            {
+                return NotFound(new ErrorViewModel(true, "Aucun utilisateur associé à ce token"));
+            }
+            var user = await _userManager.FindByEmailAsync(email);
+            return Ok(new UserViewModel(user, Token.CreateToken(user, _userManager, _config)));
         }
 
         [AllowAnonymous]
