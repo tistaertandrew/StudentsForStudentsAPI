@@ -22,10 +22,10 @@ var connectionString = Configuration.GetConnectionString("default");
 builder.Services.AddCors(p => p.AddPolicy("StudentsForStudents", builder =>
 {
     //builder.WithOrigins("http://localhost:3000").AllowAnyMethod().AllowAnyHeader();
-    //builder.WithOrigins(Configuration.GetSection("CorsURL").Value).AllowAnyMethod().AllowAnyHeader();
+    builder.WithOrigins(Configuration.GetSection("CorsURL").Value).AllowAnyMethod().AllowAnyHeader();
 
     // /!\ A MODIFIER DES QU'ON SAIT COMMENT AJOUTER DARTAGNAN COMME ORIGINE /!\
-    builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
+    //builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
 }));
 
 
