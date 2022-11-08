@@ -17,6 +17,7 @@ namespace StudentsForStudentsAPI.Models
 
             claims.Add(new Claim(ClaimTypes.Name, user.UserName));
             claims.Add(new Claim(ClaimTypes.Email, user.Email));
+            claims.Add(new Claim(ClaimTypes.NameIdentifier, user.Id));
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config.GetSection("AppSettings:JwtSecret").Value));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
