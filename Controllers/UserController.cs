@@ -27,33 +27,8 @@ namespace StudentsForStudentsAPI.Controllers
             _signInManager = signInManager;
             _config = config;
         }
-        
-        [AllowAnonymous]
-        [HttpPost("Contact")]
-        [Produces("application/json")]
-        public async Task<ActionResult<SuccessViewModel>> Contact(FormViewModel request)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(new ErrorViewModel(true, "Informations invalides"));
-            }
 
-            var user = await _userManager.FindByEmailAsync(request.Email);
-            var form = new Form();
-            
-            if (user == null) form.SenderEmail = request.Email;
-            else form.Sender = user;
-
-            form.Date = DateTime.Now;
-            form.Message = request.Message;
-            form.Status = false;
-
-            _context.Forms.Add(form);
-            _context.SaveChanges();
-            return Ok(new SuccessViewModel(false, "Formulaire envoyé"));
-        }
-
-        [HttpGet("WhoAmI")]
+        [HttpGet]
         [Authorize]
         [Produces("application/json")]
         public async Task<ActionResult<UserViewModel>> WhoAmI()
