@@ -5,6 +5,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using StudentsForStudentsAPI;
 using StudentsForStudentsAPI.Models;
+using StudentsForStudentsAPI.Services;
 using Swashbuckle.AspNetCore.Filters;
 using System.Text;
 
@@ -21,15 +22,13 @@ var connectionString = Configuration.GetConnectionString("default");
 
 builder.Services.AddCors(p => p.AddPolicy("StudentsForStudents", builder =>
 {
-    //builder.WithOrigins("http://localhost:3000").AllowAnyMethod().AllowAnyHeader();
     builder.WithOrigins(Configuration.GetSection("CorsURL").Value).AllowAnyMethod().AllowAnyHeader();
-
-    // /!\ A MODIFIER DES QU'ON SAIT COMMENT AJOUTER DARTAGNAN COMME ORIGINE /!\
-    //builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
 }));
 
 
 builder.Services.AddControllersWithViews();
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddDbContext<DatabaseContext>(options => options.UseSqlServer(connectionString));
 
 builder.Services.AddIdentity<User, IdentityRole>(options =>
@@ -58,7 +57,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
-    options.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
+    options.AddSecurityDefinition("App Security", new OpenApiSecurityScheme
     {
         Description = "Standard Authorization Header using the Bearer scheme (\"bearer {token}\")",
         In = ParameterLocation.Header,

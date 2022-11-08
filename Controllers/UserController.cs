@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using StudentsForStudentsAPI.Models;
 using StudentsForStudentsAPI.Models.ViewModels;
+using StudentsForStudentsAPI.Services;
 using System.Security.Claims;
 
 namespace StudentsForStudentsAPI.Controllers
@@ -17,15 +18,15 @@ namespace StudentsForStudentsAPI.Controllers
     {
         private readonly DatabaseContext _context;
         private readonly UserManager<User> _userManager;
-        private readonly SignInManager<User> _signInManager;
         private readonly IConfiguration _config;
+        private readonly IUserService _userService;
 
-        public UserController(DatabaseContext context, UserManager<User> userManager, SignInManager<User> signInManager, IConfiguration config)
+        public UserController(DatabaseContext context, UserManager<User> userManager, IConfiguration config, IUserService userService)
         {
             _context = context;
             _userManager = userManager;
-            _signInManager = signInManager;
             _config = config;
+            _userService = userService;
         }
 
         [HttpGet]
@@ -33,12 +34,12 @@ namespace StudentsForStudentsAPI.Controllers
         [Produces("application/json")]
         public async Task<ActionResult<UserViewModel>> WhoAmI()
         {
-            var email = User?.FindFirstValue(ClaimTypes.Email);
-            if (email == null)
+            var id = _userService.GetUserIdFromToken();
+            if (id == null)
             {
                 return NotFound(new ErrorViewModel(true, "Aucun utilisateur associé à ce token"));
             }
-            var user = await _userManager.FindByEmailAsync(email);
+            var user = await _userManager.FindByIdAsync(id);
             return Ok(new UserViewModel(user, Token.CreateToken(user, _userManager, _config)));
         }
 
