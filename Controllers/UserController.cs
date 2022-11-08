@@ -39,19 +39,14 @@ namespace StudentsForStudentsAPI.Controllers
             }
 
             var user = await _userManager.FindByEmailAsync(request.Email);
-            if (user == null)
-            {
-                return NotFound(new ErrorViewModel(true, "Aucun utilisateur ne correspond à cet adresse mail"));
-            }
+            var form = new Form();
+            
+            if (user == null) form.SenderEmail = request.Email;
+            else form.Sender = user;
 
-            var form = new Form()
-            {
-                Date = DateTime.Now,
-                Message = request.Message,
-                Status = false,
-                Sender = user,
-                Handler = null
-            };
+            form.Date = DateTime.Now;
+            form.Message = request.Message;
+            form.Status = false;
 
             _context.Forms.Add(form);
             _context.SaveChanges();
