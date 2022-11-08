@@ -27,6 +27,36 @@ namespace StudentsForStudentsAPI.Controllers
             _signInManager = signInManager;
             _config = config;
         }
+        
+        [AllowAnonymous]
+        [HttpPost("Contact")]
+        [Produces("application/json")]
+        public async Task<ActionResult<SuccessViewModel>> Contact(FormViewModel request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(new ErrorViewModel(true, "Informations invalides"));
+            }
+
+            var user = await _userManager.FindByEmailAsync(request.Email);
+            if (user == null)
+            {
+                return NotFound(new ErrorViewModel(true, "Aucun utilisateur ne correspond à cet adresse mail"));
+            }
+
+            var form = new Form()
+            {
+                Date = DateTime.Now,
+                Message = request.Message,
+                Status = false,
+                Sender = user,
+                Handler = null
+            };
+
+            _context.Forms.Add(form);
+            _context.SaveChanges();
+            return Ok(new SuccessViewModel(false, "Formulaire envoyé"));
+        }
 
         [HttpGet("WhoAmI")]
         [Authorize]
@@ -34,7 +64,7 @@ namespace StudentsForStudentsAPI.Controllers
         public async Task<ActionResult<UserViewModel>> WhoAmI()
         {
             var email = User?.FindFirstValue(ClaimTypes.Email);
-            if(email == null)
+            if (email == null)
             {
                 return NotFound(new ErrorViewModel(true, "Aucun utilisateur associé à ce token"));
             }
