@@ -30,15 +30,18 @@ namespace StudentsForStudentsAPI.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Member, Admin")]
+        [Authorize(Roles = "Member,Admin")]
         [Produces("application/json")]
         public async Task<ActionResult<UserViewModel>> WhoAmI()
         {
+            if (!_userService.IsTokenValid()) return Unauthorized();
+
             var id = _userService.GetUserIdFromToken();
             if (id == null)
             {
                 return NotFound(new ErrorViewModel(true, "Aucun utilisateur associé à ce token"));
             }
+            
             var user = await _userManager.FindByIdAsync(id);
             return Ok(new UserViewModel(user, Token.CreateToken(user, _userManager, _config)));
         }
