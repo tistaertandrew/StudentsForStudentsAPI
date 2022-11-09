@@ -30,7 +30,7 @@ namespace StudentsForStudentsAPI.Controllers
         }
 
         [HttpGet]
-        [Authorize]
+        [Authorize(Roles = "Member, Admin")]
         [Produces("application/json")]
         public async Task<ActionResult<UserViewModel>> WhoAmI()
         {

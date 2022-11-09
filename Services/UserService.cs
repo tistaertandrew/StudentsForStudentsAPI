@@ -13,5 +13,12 @@ namespace StudentsForStudentsAPI.Services
 
         public string? GetUserIdFromToken() 
             => _httpContextAccessor?.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        public bool IsTokenValid()
+        {
+            var exp = _httpContextAccessor?.HttpContext?.User?.FindFirstValue("exp");
+            var date = exp != null ? DateTimeOffset.FromUnixTimeSeconds(long.Parse(exp)).DateTime : DateTime.MinValue;
+            return date > DateTime.Now;
+        }
     }
 }
