@@ -12,10 +12,12 @@ namespace StudentsForStudentsAPI.Models
             base.OnModelCreating(builder);
             builder.ApplyConfiguration(new SectionConfiguration());
             builder.ApplyConfiguration(new CursusConfiguration());
+            builder.ApplyConfiguration(new CourseConfiguration());
         }
         public DbSet<User> Users { get; set; }
         public DbSet<Section> Sections { get; set; }
         public DbSet<Cursus> Cursus { get; set; }
         public DbSet<Form> Forms { get; set; }
+        public DbSet<Course> Courses { get; set; }
     }
 }

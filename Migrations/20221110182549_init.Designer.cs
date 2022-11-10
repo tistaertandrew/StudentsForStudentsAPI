@@ -12,8 +12,8 @@ using StudentsForStudentsAPI.Models;
 namespace StudentsForStudentsAPI.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    [Migration("20221102210618_ajout-valeurs-sections-et-cursus")]
-    partial class ajoutvaleurssectionsetcursus
+    [Migration("20221110182549_init")]
+    partial class init
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -157,6 +157,234 @@ namespace StudentsForStudentsAPI.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("StudentsForStudentsAPI.Models.Course", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<int>("CursusId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Label")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CursusId");
+
+                    b.ToTable("Courses", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            CursusId = 1,
+                            Label = "UE1 - Programmation de base (B1)"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            CursusId = 1,
+                            Label = "UE2 - Architecture des ordinateurs (B1)"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            CursusId = 1,
+                            Label = "UE3 - Conception d'applications 1 (B1)"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            CursusId = 1,
+                            Label = "UE35 - Communication écrite et orale en langue française (B1)"
+                        },
+                        new
+                        {
+                            Id = 5,
+                            CursusId = 1,
+                            Label = "UE4 - Mathématiques appliquées à l'informatique 1 (B1)"
+                        },
+                        new
+                        {
+                            Id = 6,
+                            CursusId = 1,
+                            Label = "UE5 - Base de données (B1)"
+                        },
+                        new
+                        {
+                            Id = 7,
+                            CursusId = 1,
+                            Label = "UE6 - Développement web (B1)"
+                        },
+                        new
+                        {
+                            Id = 8,
+                            CursusId = 1,
+                            Label = "UE7 - Anglais (B1)"
+                        },
+                        new
+                        {
+                            Id = 9,
+                            CursusId = 1,
+                            Label = "UE8 - E-Business (B1)"
+                        },
+                        new
+                        {
+                            Id = 10,
+                            CursusId = 1,
+                            Label = "UE9 - Programmation intermédiaire (B1)"
+                        },
+                        new
+                        {
+                            Id = 11,
+                            CursusId = 1,
+                            Label = "UE13 - Systèmes d'exploitation (B2)"
+                        },
+                        new
+                        {
+                            Id = 12,
+                            CursusId = 1,
+                            Label = "UE14 - Anglais (B2)"
+                        },
+                        new
+                        {
+                            Id = 13,
+                            CursusId = 1,
+                            Label = "UE15 - Droit et Ethique du monde numérique (B2)"
+                        },
+                        new
+                        {
+                            Id = 14,
+                            CursusId = 1,
+                            Label = "UE16 - Digitalisation et nouvelle économie (B2)"
+                        },
+                        new
+                        {
+                            Id = 15,
+                            CursusId = 1,
+                            Label = "UE17 - Mathématiques appliquées à l'informatique 2 (B2)"
+                        },
+                        new
+                        {
+                            Id = 16,
+                            CursusId = 1,
+                            Label = "UE18 - Développement mobile (B2)"
+                        },
+                        new
+                        {
+                            Id = 17,
+                            CursusId = 1,
+                            Label = "UE19 - Développement web avancé (B2)"
+                        },
+                        new
+                        {
+                            Id = 18,
+                            CursusId = 1,
+                            Label = "UE20 - Langage de scripts dynamiques (B2)"
+                        },
+                        new
+                        {
+                            Id = 19,
+                            CursusId = 1,
+                            Label = "UE21 - Réseaux informatiques (B2)"
+                        },
+                        new
+                        {
+                            Id = 20,
+                            CursusId = 1,
+                            Label = "UE36 - Programmation avancée (B2)"
+                        },
+                        new
+                        {
+                            Id = 21,
+                            CursusId = 1,
+                            Label = "UE10 - Conception d'applications 2 (B2)"
+                        },
+                        new
+                        {
+                            Id = 22,
+                            CursusId = 1,
+                            Label = "UE22 - Laboratoire pluridisciplinaire (B2)"
+                        },
+                        new
+                        {
+                            Id = 23,
+                            CursusId = 1,
+                            Label = "UE23 - SALTo (B2)"
+                        },
+                        new
+                        {
+                            Id = 24,
+                            CursusId = 1,
+                            Label = "UE25 - Architectures logicielles (B3)"
+                        },
+                        new
+                        {
+                            Id = 25,
+                            CursusId = 1,
+                            Label = "UE26 - Frameworks web (B3)"
+                        },
+                        new
+                        {
+                            Id = 26,
+                            CursusId = 1,
+                            Label = "UE27 - Entrepreneuriat (B3)"
+                        },
+                        new
+                        {
+                            Id = 27,
+                            CursusId = 1,
+                            Label = "UE28 - Savoir être, culture d'entreprise (B3)"
+                        },
+                        new
+                        {
+                            Id = 28,
+                            CursusId = 1,
+                            Label = "UE29 - Informatique managériale (B3)"
+                        },
+                        new
+                        {
+                            Id = 29,
+                            CursusId = 1,
+                            Label = "UE30 - Stage et travail de fin d'études (B3)"
+                        },
+                        new
+                        {
+                            Id = 30,
+                            CursusId = 1,
+                            Label = "UE31 - Mémoire (B3)"
+                        },
+                        new
+                        {
+                            Id = 31,
+                            CursusId = 1,
+                            Label = "UE32 - Administration réseau et système (LINUX) (B3)"
+                        },
+                        new
+                        {
+                            Id = 32,
+                            CursusId = 1,
+                            Label = "UE24 - Administration réseau et système (WINDOWS) (B3)"
+                        },
+                        new
+                        {
+                            Id = 33,
+                            CursusId = 1,
+                            Label = "UE33 - Conférences - Visites - Séminaires (B3)"
+                        },
+                        new
+                        {
+                            Id = 34,
+                            CursusId = 1,
+                            Label = "UE34 - SALTo (B3)"
+                        });
+                });
+
             modelBuilder.Entity("StudentsForStudentsAPI.Models.Cursus", b =>
                 {
                     b.Property<int>("Id")
@@ -209,6 +437,42 @@ namespace StudentsForStudentsAPI.Migrations
                             Label = "Commerce Extérieur",
                             SectionId = 2
                         });
+                });
+
+            modelBuilder.Entity("StudentsForStudentsAPI.Models.Form", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("HandlerId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SenderEmail")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SenderId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<bool>("Status")
+                        .HasColumnType("bit");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("HandlerId");
+
+                    b.HasIndex("SenderId");
+
+                    b.ToTable("Forms");
                 });
 
             modelBuilder.Entity("StudentsForStudentsAPI.Models.Section", b =>
@@ -361,6 +625,17 @@ namespace StudentsForStudentsAPI.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("StudentsForStudentsAPI.Models.Course", b =>
+                {
+                    b.HasOne("StudentsForStudentsAPI.Models.Cursus", "Cursus")
+                        .WithMany()
+                        .HasForeignKey("CursusId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Cursus");
+                });
+
             modelBuilder.Entity("StudentsForStudentsAPI.Models.Cursus", b =>
                 {
                     b.HasOne("StudentsForStudentsAPI.Models.Section", "Section")
@@ -370,6 +645,21 @@ namespace StudentsForStudentsAPI.Migrations
                         .IsRequired();
 
                     b.Navigation("Section");
+                });
+
+            modelBuilder.Entity("StudentsForStudentsAPI.Models.Form", b =>
+                {
+                    b.HasOne("StudentsForStudentsAPI.Models.User", "Handler")
+                        .WithMany()
+                        .HasForeignKey("HandlerId");
+
+                    b.HasOne("StudentsForStudentsAPI.Models.User", "Sender")
+                        .WithMany()
+                        .HasForeignKey("SenderId");
+
+                    b.Navigation("Handler");
+
+                    b.Navigation("Sender");
                 });
 
             modelBuilder.Entity("StudentsForStudentsAPI.Models.User", b =>

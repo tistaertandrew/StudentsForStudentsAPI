@@ -110,6 +110,26 @@ namespace StudentsForStudentsAPI.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Courses",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Label = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CursusId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Courses", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Courses_Cursus_CursusId",
+                        column: x => x.CursusId,
+                        principalTable: "Cursus",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "AspNetUserClaims",
                 columns: table => new
                 {
@@ -194,20 +214,96 @@ namespace StudentsForStudentsAPI.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "Forms",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Date = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Message = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Status = table.Column<bool>(type: "bit", nullable: false),
+                    SenderEmail = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    SenderId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    HandlerId = table.Column<string>(type: "nvarchar(450)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Forms", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Forms_AspNetUsers_HandlerId",
+                        column: x => x.HandlerId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Forms_AspNetUsers_SenderId",
+                        column: x => x.SenderId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id");
+                });
+
             migrationBuilder.InsertData(
                 table: "Sections",
                 columns: new[] { "Id", "Label" },
                 values: new object[] { 1, "Technique" });
 
             migrationBuilder.InsertData(
-                table: "Cursus",
-                columns: new[] { "Id", "Label", "SectionId" },
-                values: new object[] { 1, "Développement d'applications", 1 });
+                table: "Sections",
+                columns: new[] { "Id", "Label" },
+                values: new object[] { 2, "Economique" });
 
             migrationBuilder.InsertData(
                 table: "Cursus",
                 columns: new[] { "Id", "Label", "SectionId" },
-                values: new object[] { 2, "Cybersécurité", 1 });
+                values: new object[,]
+                {
+                    { 1, "Développement d'applications", 1 },
+                    { 2, "Cybersécurité", 1 },
+                    { 3, "Marketing", 2 },
+                    { 4, "Droit", 2 },
+                    { 5, "Commerce Extérieur", 2 }
+                });
+
+            migrationBuilder.InsertData(
+                table: "Courses",
+                columns: new[] { "Id", "CursusId", "Label" },
+                values: new object[,]
+                {
+                    { 1, 1, "UE1 - Programmation de base (B1)" },
+                    { 2, 1, "UE2 - Architecture des ordinateurs (B1)" },
+                    { 3, 1, "UE3 - Conception d'applications 1 (B1)" },
+                    { 4, 1, "UE35 - Communication écrite et orale en langue française (B1)" },
+                    { 5, 1, "UE4 - Mathématiques appliquées à l'informatique 1 (B1)" },
+                    { 6, 1, "UE5 - Base de données (B1)" },
+                    { 7, 1, "UE6 - Développement web (B1)" },
+                    { 8, 1, "UE7 - Anglais (B1)" },
+                    { 9, 1, "UE8 - E-Business (B1)" },
+                    { 10, 1, "UE9 - Programmation intermédiaire (B1)" },
+                    { 11, 1, "UE13 - Systèmes d'exploitation (B2)" },
+                    { 12, 1, "UE14 - Anglais (B2)" },
+                    { 13, 1, "UE15 - Droit et Ethique du monde numérique (B2)" },
+                    { 14, 1, "UE16 - Digitalisation et nouvelle économie (B2)" },
+                    { 15, 1, "UE17 - Mathématiques appliquées à l'informatique 2 (B2)" },
+                    { 16, 1, "UE18 - Développement mobile (B2)" },
+                    { 17, 1, "UE19 - Développement web avancé (B2)" },
+                    { 18, 1, "UE20 - Langage de scripts dynamiques (B2)" },
+                    { 19, 1, "UE21 - Réseaux informatiques (B2)" },
+                    { 20, 1, "UE36 - Programmation avancée (B2)" },
+                    { 21, 1, "UE10 - Conception d'applications 2 (B2)" },
+                    { 22, 1, "UE22 - Laboratoire pluridisciplinaire (B2)" },
+                    { 23, 1, "UE23 - SALTo (B2)" },
+                    { 24, 1, "UE25 - Architectures logicielles (B3)" },
+                    { 25, 1, "UE26 - Frameworks web (B3)" },
+                    { 26, 1, "UE27 - Entrepreneuriat (B3)" },
+                    { 27, 1, "UE28 - Savoir être, culture d'entreprise (B3)" },
+                    { 28, 1, "UE29 - Informatique managériale (B3)" },
+                    { 29, 1, "UE30 - Stage et travail de fin d'études (B3)" },
+                    { 30, 1, "UE31 - Mémoire (B3)" },
+                    { 31, 1, "UE32 - Administration réseau et système (LINUX) (B3)" },
+                    { 32, 1, "UE24 - Administration réseau et système (WINDOWS) (B3)" },
+                    { 33, 1, "UE33 - Conférences - Visites - Séminaires (B3)" },
+                    { 34, 1, "UE34 - SALTo (B3)" }
+                });
 
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetRoleClaims_RoleId",
@@ -254,9 +350,24 @@ namespace StudentsForStudentsAPI.Migrations
                 filter: "[NormalizedUserName] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Courses_CursusId",
+                table: "Courses",
+                column: "CursusId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Cursus_SectionId",
                 table: "Cursus",
                 column: "SectionId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Forms_HandlerId",
+                table: "Forms",
+                column: "HandlerId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Forms_SenderId",
+                table: "Forms",
+                column: "SenderId");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
@@ -275,6 +386,12 @@ namespace StudentsForStudentsAPI.Migrations
 
             migrationBuilder.DropTable(
                 name: "AspNetUserTokens");
+
+            migrationBuilder.DropTable(
+                name: "Courses");
+
+            migrationBuilder.DropTable(
+                name: "Forms");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");
