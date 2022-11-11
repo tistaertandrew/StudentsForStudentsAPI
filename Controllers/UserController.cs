@@ -29,6 +29,22 @@ namespace StudentsForStudentsAPI.Controllers
             _userService = userService;
         }
 
+        [HttpPut("{calendarLink}")]
+        [Authorize(Roles = "Member, Admin")]
+        [Produces("application/json")]
+        public ActionResult<SuccessViewModel> UpdateCalendarLink(string calendarLink)
+        {
+            if (!ModelState.IsValid) return BadRequest(new ErrorViewModel(true, "Le lien du calendrier est invalide"));
+            
+            if (!_userService.IsTokenValid()) return Unauthorized();
+            
+            var user = _userManager.FindByIdAsync(_userService.GetUserIdFromToken()).Result;
+            user.CalendarLink = calendarLink;
+            _context.SaveChanges();
+            return Ok(new SuccessViewModel(false, "Lien du calendrier mis à jour avec succès"));
+        }
+
+
         [HttpGet]
         [Authorize(Roles = "Member,Admin")]
         [Produces("application/json")]
