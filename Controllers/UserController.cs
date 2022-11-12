@@ -136,7 +136,7 @@ namespace StudentsForStudentsAPI.Controllers
                 }
 
                 await _userManager.AddToRoleAsync(user, "Member");
-                return Ok(new SuccessViewModel(false, "Compte créée avec succès"));
+                return Ok(new SuccessViewModel(false, "Compte créé avec succès"));
 
             }
             catch (Exception)

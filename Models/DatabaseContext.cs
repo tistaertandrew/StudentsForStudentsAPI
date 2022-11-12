@@ -19,5 +19,7 @@ namespace StudentsForStudentsAPI.Models
         public DbSet<Cursus> Cursus { get; set; }
         public DbSet<Form> Forms { get; set; }
         public DbSet<Course> Courses { get; set; }
+        public DbSet<Place> Places { get; set; }
+        public DbSet<Request> Requests { get; set; }
     }
 }

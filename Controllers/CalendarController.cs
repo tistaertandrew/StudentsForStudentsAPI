@@ -15,13 +15,11 @@ namespace StudentsForStudentsAPI.Controllers
     [ApiController]
     public class CalendarController : ControllerBase
     {
-        private readonly DatabaseContext _context;
         private readonly IUserService _userService;
         private readonly UserManager<User> _userManager;
 
-        public CalendarController(DatabaseContext context, IUserService userService, UserManager<User> userManager)
+        public CalendarController(IUserService userService, UserManager<User> userManager)
         {
-            _context = context;
             _userService = userService;
             _userManager = userManager;
         }
@@ -36,7 +34,7 @@ namespace StudentsForStudentsAPI.Controllers
             string? calendarUrl = HttpUtility.UrlDecode(_userManager.FindByIdAsync(_userService.GetUserIdFromToken()).Result.CalendarLink);
             string? calendar = Calendar.GetCalendar(calendarUrl).Result;
 
-            if (calendar == null) return NotFound();
+            if (calendar == null) return NotFound(new ErrorViewModel(true, "Aucun calendrier trouvé"));
             return Ok(calendar);
         }
     }
