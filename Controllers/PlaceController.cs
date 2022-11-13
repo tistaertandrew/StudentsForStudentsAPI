@@ -50,6 +50,10 @@ namespace StudentsForStudentsAPI.Controllers
                 Number = request.Number,
                 Locality = request.Locality
             };
+            if (_context.Places.Any(p => p.Street == place.Street && p.PostalCode == place.PostalCode && p.Number == place.Number && p.Locality == place.Locality))
+            {
+                return BadRequest(new ErrorViewModel(true, "Ce lieu existe déjà"));
+            }
             _context.Places.Add(place);
             _context.SaveChanges();
             return Ok(new SuccessViewModel(false, "Lieu ajouté avec succès"));
