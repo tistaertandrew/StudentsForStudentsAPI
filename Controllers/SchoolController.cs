@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using StudentsForStudentsAPI.Models;
+using StudentsForStudentsAPI.Models.ViewModels;
 
 namespace StudentsForStudentsAPI.Controllers
 {
@@ -53,6 +54,20 @@ namespace StudentsForStudentsAPI.Controllers
         {
             var cursus = _context.Cursus.Include(c => c.Section).ToList();
             return Ok(cursus);
+        }
+
+        [AllowAnonymous]
+        [HttpGet("CursusWithCourses/{id}")]
+        [Produces("application/json")]
+        public async Task<ActionResult<CursusWithCoursesViewModel>> GetCursusWithViewModel(int id)
+        {
+            var cursus = _context.Cursus.Where(c => c.Id == id).First();
+            var courses = _context.Courses.Include(c => c.Cursus).Where(c => c.Cursus.Id == cursus.Id).ToList();
+            return Ok(new CursusWithCoursesViewModel
+            {
+                Courses = courses,
+                Cursus = cursus
+            });
         }
     }
 }

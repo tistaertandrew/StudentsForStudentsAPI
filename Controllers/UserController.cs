@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using StudentsForStudentsAPI.Models;
 using StudentsForStudentsAPI.Models.ViewModels;
+using StudentsForStudentsAPI.Services;
+using System.Security.Claims;
 
 namespace StudentsForStudentsAPI.Controllers
 {
@@ -16,15 +18,33 @@ namespace StudentsForStudentsAPI.Controllers
     {
         private readonly DatabaseContext _context;
         private readonly UserManager<User> _userManager;
-        private readonly SignInManager<User> _signInManager;
         private readonly IConfiguration _config;
+        private readonly IUserService _userService;
 
-        public UserController(DatabaseContext context, UserManager<User> userManager, SignInManager<User> signInManager, IConfiguration config)
+        public UserController(DatabaseContext context, UserManager<User> userManager, IConfiguration config, IUserService userService)
         {
             _context = context;
             _userManager = userManager;
-            _signInManager = signInManager;
             _config = config;
+            _userService = userService;
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Member,Admin")]
+        [Produces("application/json")]
+        public async Task<ActionResult<UserViewModel>> WhoAmI()
+        {
+            if (!_userService.IsTokenValid()) return Unauthorized();
+
+            var id = _userService.GetUserIdFromToken();
+            if (id == null)
+            {
+                return NotFound(new ErrorViewModel(true, "Aucun utilisateur associé à ce token"));
+            }
+            
+            var userFromManager = await _userManager.FindByIdAsync(id);
+            var userFromContextWithCursus = _context.Users.Where(user => user.Id == userFromManager.Id).Include(user => user.Cursus).First();
+            return Ok(new UserViewModel(userFromContextWithCursus, Token.CreateToken(userFromContextWithCursus, _userManager, _config)));
         }
 
         [AllowAnonymous]
@@ -59,7 +79,8 @@ namespace StudentsForStudentsAPI.Controllers
                 return BadRequest(new ErrorViewModel(true, "Informations invalides"));
             }
 
-            var user = await _userManager.FindByEmailAsync(request.Email);
+            var user = _context.Users.Where(user => user.Email == request.Email).Include(user => user.Cursus).First();
+            user = await _userManager.FindByEmailAsync(request.Email);
             if (user == null)
             {
                 return BadRequest(new ErrorViewModel(true, "Email invalide"));
@@ -102,7 +123,6 @@ namespace StudentsForStudentsAPI.Controllers
 
                 await _userManager.AddToRoleAsync(user, "Member");
                 return Ok(new SuccessViewModel(false, "Compte créée avec succès"));
-
             }
             catch (Exception)
             {
