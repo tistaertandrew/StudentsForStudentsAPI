@@ -12,7 +12,7 @@ using StudentsForStudentsAPI.Models;
 namespace StudentsForStudentsAPI.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    [Migration("20221110182549_init")]
+    [Migration("20221116123852_init")]
     partial class init
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -475,6 +475,81 @@ namespace StudentsForStudentsAPI.Migrations
                     b.ToTable("Forms");
                 });
 
+            modelBuilder.Entity("StudentsForStudentsAPI.Models.Place", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<string>("Locality")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Number")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("PostalCode")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Street")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Places");
+                });
+
+            modelBuilder.Entity("StudentsForStudentsAPI.Models.Request", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<int>("CourseId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("HandlerId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("PlaceId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SenderId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<bool>("Status")
+                        .HasColumnType("bit");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CourseId");
+
+                    b.HasIndex("HandlerId");
+
+                    b.HasIndex("PlaceId");
+
+                    b.HasIndex("SenderId");
+
+                    b.ToTable("Requests");
+                });
+
             modelBuilder.Entity("StudentsForStudentsAPI.Models.Section", b =>
                 {
                     b.Property<int>("Id")
@@ -511,6 +586,9 @@ namespace StudentsForStudentsAPI.Migrations
 
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("int");
+
+                    b.Property<string>("CalendarLink")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
@@ -658,6 +736,37 @@ namespace StudentsForStudentsAPI.Migrations
                         .HasForeignKey("SenderId");
 
                     b.Navigation("Handler");
+
+                    b.Navigation("Sender");
+                });
+
+            modelBuilder.Entity("StudentsForStudentsAPI.Models.Request", b =>
+                {
+                    b.HasOne("StudentsForStudentsAPI.Models.Course", "Course")
+                        .WithMany()
+                        .HasForeignKey("CourseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("StudentsForStudentsAPI.Models.User", "Handler")
+                        .WithMany()
+                        .HasForeignKey("HandlerId");
+
+                    b.HasOne("StudentsForStudentsAPI.Models.Place", "Place")
+                        .WithMany()
+                        .HasForeignKey("PlaceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("StudentsForStudentsAPI.Models.User", "Sender")
+                        .WithMany()
+                        .HasForeignKey("SenderId");
+
+                    b.Navigation("Course");
+
+                    b.Navigation("Handler");
+
+                    b.Navigation("Place");
 
                     b.Navigation("Sender");
                 });

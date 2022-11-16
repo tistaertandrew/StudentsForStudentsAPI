@@ -59,6 +59,7 @@ namespace StudentsForStudentsAPI.Controllers
             }
             
             var user = await _userManager.FindByIdAsync(id);
+            user.Cursus = _context.Users.Where(u => u.Id == user.Id).Include(u => u.Cursus).ThenInclude(c => c.Section).FirstOrDefault().Cursus;
             return Ok(new UserViewModel(user, Token.CreateToken(user, _userManager, _config)));
         }
 
@@ -70,11 +71,12 @@ namespace StudentsForStudentsAPI.Controllers
             try
             {
                 var payload = GoogleJsonWebSignature.ValidateAsync(request.Credentials, new GoogleJsonWebSignature.ValidationSettings()).Result;
-                var user = await _userManager.FindByEmailAsync(payload.Email);
+                var user = _userManager.FindByEmailAsync(payload.Email).Result;
                 if (user == null)
                 {
                     return NotFound(new ErrorViewModel(true, payload.Email));
                 }
+                user.Cursus = _context.Users.Where(u => u.Id == user.Id).Include(u => u.Cursus).ThenInclude(c => c.Section).FirstOrDefault().Cursus;
 
                 return Ok(new UserViewModel(user, Token.CreateToken(user, _userManager, _config)));
             }
@@ -108,6 +110,7 @@ namespace StudentsForStudentsAPI.Controllers
                     return BadRequest(new ErrorViewModel(true, "Mot de passe invalide"));
                 }
             }
+            user.Cursus = _context.Users.Where(u => u.Id == user.Id).Include(u => u.Cursus).ThenInclude(c => c.Section).FirstOrDefault().Cursus;
 
             return Ok(new UserViewModel(user, Token.CreateToken(user, _userManager, _config)));
         }
@@ -136,6 +139,7 @@ namespace StudentsForStudentsAPI.Controllers
                 }
 
                 await _userManager.AddToRoleAsync(user, "Member");
+                user.Cursus = _context.Users.Where(u => u.Id == user.Id).Include(u => u.Cursus).ThenInclude(c => c.Section).FirstOrDefault().Cursus;
                 return Ok(new SuccessViewModel(false, "Compte créé avec succès"));
 
             }
