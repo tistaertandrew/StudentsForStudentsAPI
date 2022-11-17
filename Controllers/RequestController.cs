@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using StudentsForStudentsAPI.Models;
 using StudentsForStudentsAPI.Models.ViewModels;
 using StudentsForStudentsAPI.Services;
@@ -24,6 +25,19 @@ namespace StudentsForStudentsAPI.Controllers
             _context = context;
             _userService = userService;
             _userManager = userManager;
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Member,Admin")]
+        [Produces("application/json")]
+        public IActionResult GetRequests()
+        {
+            if (!ModelState.IsValid) return BadRequest(new ErrorViewModel(true, "Informations invalides"));
+            if (!_userService.IsTokenValid()) return Unauthorized();
+
+            var requests = _context.Requests.Include(r => r.Sender).Where(r => r.Sender.Id != _userService.GetUserIdFromToken()).ToList();
+
+            return Ok(requests);
         }
 
         [HttpPost]
