@@ -18,6 +18,7 @@ namespace StudentsForStudentsAPI.Models
         public DbSet<Section> Sections { get; set; }
         public DbSet<Cursus> Cursus { get; set; }
         public DbSet<Form> Forms { get; set; }
-        public DbSet<Course> Courses { get; set; } 
+        public DbSet<Course> Courses { get; set; }
+        public DbSet<File> Files { get; set; }
     }
 }

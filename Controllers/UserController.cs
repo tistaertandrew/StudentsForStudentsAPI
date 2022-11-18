@@ -7,7 +7,6 @@ using Microsoft.EntityFrameworkCore;
 using StudentsForStudentsAPI.Models;
 using StudentsForStudentsAPI.Models.ViewModels;
 using StudentsForStudentsAPI.Services;
-using System.Security.Claims;
 
 namespace StudentsForStudentsAPI.Controllers
 {
