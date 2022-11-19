@@ -27,6 +27,29 @@ namespace StudentsForStudentsAPI.Controllers
             _userManager = userManager;
         }
 
+        [HttpPut("{requestId}")]
+        [Authorize(Roles = "Member,Admin")]
+        [Produces("application/json")]
+        public IActionResult UpdateRequest(int requestId)
+        {
+            {
+                if (!_userService.IsTokenValid()) return Unauthorized();
+
+                var request = _context.Requests.Include(r => r.Sender).Where(r => r.Id == requestId).FirstOrDefault();
+                if (request == null) return NotFound(new ErrorViewModel(true, "La demande n'existe pas"));
+
+                var user = _userManager.FindByIdAsync(_userService.GetUserIdFromToken()).Result;
+                if (user == null) return NotFound(new ErrorViewModel(true, "L'utilisateur n'existe pas"));
+                if (request.Sender.Id.Equals(user.Id)) return BadRequest(new ErrorViewModel(true, "Vous ne pouvez pas accepter une de vos propres demandes"));
+                if (request.Status) return BadRequest(new ErrorViewModel(true, "Cette demande a déjà été acceptée"));
+
+                request.Status = !request.Status;
+                request.Handler = user;
+                _context.SaveChanges();
+                return Ok(new SuccessViewModel(false, "Demande acceptée avec succès"));
+            }
+        }
+
         [HttpGet]
         [Authorize(Roles = "Member,Admin")]
         [Produces("application/json")]
@@ -35,9 +58,29 @@ namespace StudentsForStudentsAPI.Controllers
             if (!ModelState.IsValid) return BadRequest(new ErrorViewModel(true, "Informations invalides"));
             if (!_userService.IsTokenValid()) return Unauthorized();
 
-            var requests = _context.Requests.Include(r => r.Sender).Where(r => r.Sender.Id != _userService.GetUserIdFromToken()).ToList();
+            var requests = _context.Requests
+                .Include(r => r.Place)
+                .Include(r => r.Course)
+                .ThenInclude(c => c.Cursus)
+                .ThenInclude(c => c.Section)
+                .Include(r => r.Sender)
+                .Where(r => r.Sender.Id != _userService.GetUserIdFromToken() && !r.Status)
+                .OrderBy(r => r.Date)
+                .ToList();
 
-            return Ok(requests);
+            var finalRequests = requests.Select(r => new 
+            {
+                id = r.Id,
+                name = r.Name,
+                description = r.Description,
+                date = r.Date.ToString("dd/MM/yyyy"),
+                status = r.Status,
+                sender = r.Sender.UserName,
+                place = r.Place,
+                course = r.Course
+            });
+
+            return Ok(finalRequests);
         }
 
         [HttpPost]
