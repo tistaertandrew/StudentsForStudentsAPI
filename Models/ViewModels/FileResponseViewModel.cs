@@ -22,5 +22,12 @@ namespace StudentsForStudentsAPI.Models.ViewModels
             Errors = new List<string>();
             Content = content;
         }
+
+        public FileResponseViewModel(T content, bool isError, List<string> errors)
+        {
+            IsError = isError;
+            Errors = errors;
+            Content = content;
+        }
     }
 }

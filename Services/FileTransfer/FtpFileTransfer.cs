@@ -9,6 +9,12 @@ namespace StudentsForStudentsAPI.Services.FileTransfer
         private readonly SftpClient _client;
         private readonly string _localWorkingDirectoryPath = "C:\\StudentForStudentFolder";
         private readonly string _localWorkingFileName = Guid.NewGuid().ToString();
+        private bool _connected = false;
+
+        /// <summary>
+        /// Must be greater than 4
+        /// </summary>
+        private int _timeout = 5;
 
         /// <summary>
         /// Create client and try to connect with given connexion info
@@ -25,11 +31,12 @@ namespace StudentsForStudentsAPI.Services.FileTransfer
                 new PasswordAuthenticationMethod(
                     connexionInfo.username,
                     connexionInfo.password));
+
+            sshNetConnexionInfo.Timeout = TimeSpan.FromSeconds(_timeout);
             
             _client = new SftpClient(sshNetConnexionInfo);
-            _client.Connect();
         }
-        
+
         /// <summary>
         /// Download a file from client server.
         /// </summary>
@@ -37,6 +44,7 @@ namespace StudentsForStudentsAPI.Services.FileTransfer
         /// <returns>StreamReader of the downloaded file</returns>
         public StreamReader DownloadFile(string filePath)
         {
+            TryToConnect();
             var path = ReadFromRemote(filePath);
             return new StreamReader(path);
         }
@@ -48,6 +56,7 @@ namespace StudentsForStudentsAPI.Services.FileTransfer
         /// <param name="remoteFilePath">The remote path where to upload the file</param>
         public void UploadFile(string content, string remoteFilePath)
         {
+            TryToConnect();
             var directory = Path.GetDirectoryName(remoteFilePath);
             if (directory == null) throw new Exception("Could not get the directory from the given remote file path");
             directory = directory.Replace("\\", @"/");
@@ -60,22 +69,64 @@ namespace StudentsForStudentsAPI.Services.FileTransfer
         }
 
         /// <summary>
-        /// Writes the given content to a file and returns the path
+        /// Delete file from remote server
         /// </summary>
-        /// <param name="content">The content to write</param>
-        /// <returns></returns>
-        private string Write(string content)
+        /// <param name="filePath"></param>
+        public void DeleteFile(string filePath)
         {
-            var path = GetWorkingFile(prefix: "upload - ");
-            using var output = File.Create(path);
-            using var writer = new StreamWriter(output);
-            writer.Write(content);
-            return path;
+            TryToConnect();
+            _client.DeleteFile(filePath);
         }
 
-        private void DeleteFile(string filePath)
+        /// <summary>
+        /// List all remote working directory filenames
+        /// </summary>
+        /// <param name="path"></param>
+        /// <returns>List of fullname (with path) of all files</returns>
+        public List<string> ListFilesName(string path)
         {
-            _client.DeleteFile(filePath);
+            TryToConnect();
+            var sftpFiles = _client.ListDirectory(path);
+            var filesName = new List<string>();
+            foreach (var file in sftpFiles) filesName.Add(file.Name);
+            return filesName;
+        }
+
+        /// <summary>
+        /// Demand client connexion status
+        /// </summary>
+        /// <returns>true if the client is connected, otherwise false</returns>
+        public bool ClientIsConnected() => _client.IsConnected;
+
+        /// <summary>
+        /// Demand if a remote file exists
+        /// </summary>
+        /// <param name="filePath">The tested path</param>
+        /// <returns>true if the file exists, otherwise false</returns>
+        public bool FileExists(string filePath)
+        {
+            TryToConnect();
+            return _client.Exists(filePath);
+        }
+
+        /// <summary>
+        /// Try to connect to server
+        /// </summary>
+        /// <exception cref="Exception"></exception>
+        private void TryToConnect()
+        {
+            try
+            {
+                if (!_connected)
+                {
+                    _client.Connect();
+                    _connected = true;
+                }
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"Error while trying to connect to server: {e.Message}");
+            }
         }
 
         /// <summary>
@@ -93,38 +144,25 @@ namespace StudentsForStudentsAPI.Services.FileTransfer
         }
 
         /// <summary>
+        /// Writes the given content to a file and returns the path
+        /// </summary>
+        /// <param name="content">The content to write</param>
+        /// <returns></returns>
+        private string Write(string content)
+        {
+            var path = GetWorkingFile(prefix: "upload - ");
+            using var output = File.Create(path);
+            using var writer = new StreamWriter(output);
+            writer.Write(content);
+            return path;
+        }
+
+        /// <summary>
         /// Demand the working file of this instance
         /// </summary>
         /// <param name="prefix"></param>
         /// <returns></returns>
         private string GetWorkingFile(string prefix = "") => Path.Combine(_localWorkingDirectoryPath, prefix + _localWorkingFileName);
-
-
-        /// <summary>
-        /// Demand client connexion status
-        /// </summary>
-        /// <returns>true if the client is connected, otherwise false</returns>
-        public bool ClientIsConnected() => _client.IsConnected;
-
-        /// <summary>
-        /// Demand if a remote file exists
-        /// </summary>
-        /// <param name="filePath">The tested path</param>
-        /// <returns>true if the file exists, otherwise false</returns>
-        public bool FileExists(string filePath) => _client.Exists(filePath);
-
-        /// <summary>
-        /// List all remote working directory filenames
-        /// </summary>
-        /// <param name="path"></param>
-        /// <returns>List of fullname (with path) of all files</returns>
-        public List<string> ListFilesName(string path)
-        {
-            var sftpFiles = _client.ListDirectory(path);
-            var filesName = new List<string>();
-            foreach (var file in sftpFiles) filesName.Add(file.Name);
-            return filesName;
-        }
 
         /// <summary>
         /// Create a remote directory recursively
@@ -133,25 +171,21 @@ namespace StudentsForStudentsAPI.Services.FileTransfer
         /// <exception cref="Exception"></exception>
         private void CreateRemoteDirectoryRecursively(string remoteDirectoryPath)
         {
+            if (remoteDirectoryPath[0] == '/') remoteDirectoryPath = remoteDirectoryPath.Substring(1);
             string remainingDirectoryPath = remoteDirectoryPath;
             string currentDirectoryPath = "";
+            int indexOfNextDirectory;
 
-            Func<int, bool> isThereMoreDirectory = delegate (int index)
-            {
-                return index >= 0;
-            };
-            
-            Func<string, bool> isLastDirectory = delegate (string index)
-            {
-                return string.IsNullOrEmpty(remoteDirectoryPath);
-            };
+            bool isThereMoreDirectory() => indexOfNextDirectory >= 0;
 
-            while (!isLastDirectory(remainingDirectoryPath))
+            bool isLastDirectory() => string.IsNullOrEmpty(remainingDirectoryPath);
+
+            while (!isLastDirectory())
             {
-                int indexOfNextDirectory = remainingDirectoryPath.IndexOf('/');
+                indexOfNextDirectory = remainingDirectoryPath.IndexOf('/');
                 currentDirectoryPath += '/';
 
-                if (isThereMoreDirectory(indexOfNextDirectory))
+                if (isThereMoreDirectory())
                 {
                     currentDirectoryPath += remainingDirectoryPath.Substring(0, indexOfNextDirectory);
                     remainingDirectoryPath = remainingDirectoryPath.Substring(indexOfNextDirectory + 1);
@@ -179,6 +213,18 @@ namespace StudentsForStudentsAPI.Services.FileTransfer
             }
         }
 
+        public int Timeout
+        {
+            get
+            {
+                return _timeout;
+            }
+            set
+            {
+                _timeout = value > 5 ? value : _timeout;
+            }
+        }
+
         public virtual void Dispose()
         {
             Dispose(true);
@@ -199,33 +245,5 @@ namespace StudentsForStudentsAPI.Services.FileTransfer
                 }
             }
         }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     }
 }
