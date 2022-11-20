@@ -21,5 +21,6 @@ namespace StudentsForStudentsAPI.Models
         public DbSet<Course> Courses { get; set; }
         public DbSet<Place> Places { get; set; }
         public DbSet<Request> Requests { get; set; }
+        public DbSet<File> Files { get; set; }
     }
 }
