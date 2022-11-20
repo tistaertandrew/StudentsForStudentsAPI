@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -88,7 +89,7 @@ namespace StudentsForStudentsAPI.Controllers
             }
 
             var errors = new List<string>();
-            var file = new Models.File { Name = request.FileName, Extension = request.Extension };
+            var file = new Models.File { Name = request.Filename, Extension = request.Extension };
             User user;
             bool isError = false;
 
@@ -110,23 +111,27 @@ namespace StudentsForStudentsAPI.Controllers
             return Ok(new FileResponseViewModel<string>(isError: isError, errors));
         }
 
-        [HttpGet("List")]
+        [HttpGet("ListFromServer")]
         [Produces("application/json")]
         public IActionResult ListFiles()
         {
+            var errors = new List<string>();
+            var names = new List<string>();
+            var isError = false;
+
             try
             {
                 ThrowExceptionIfWorkingDirectoryDoesNotExistsInRemoteServer();
-                List<string> names = ListFileFromRemoteServer();
+                names = ListFileFromRemoteServer();
                 names.RemoveAll(name => _regexToRemoveRootFilesFromFileList.IsMatch(name));
-                return Ok(new FileResponseViewModel<List<string>>(content: names));
             }
             catch (Exception e)
             {
-                var errors = new List<string>();
                 errors.Add($"Error while listing remote files: {e.Message}");
-                return Ok(new FileResponseViewModel<string>(isError: true, errors));
+                isError = true;
             }
+
+            return Ok(new FileResponseViewModel<List<string>>(content: names, isError: isError, errors));
         }
 
         [HttpGet("Delete/{filename}")]
@@ -153,6 +158,28 @@ namespace StudentsForStudentsAPI.Controllers
             }
 
             return Ok(new FileResponseViewModel<string>(isError: isError, errors));
+        }
+
+
+        [HttpGet("List")]
+        [Produces("application/json")]
+        public IActionResult GetFilesMetadata()
+        {
+            List<Models.File> files = new List<Models.File>();
+            var isError = false;
+            var errors = new List<string>();
+
+            try
+            {
+                files = _context.Files.ToList();
+            }
+            catch(Exception e)
+            {
+                errors.Add(e.Message);
+                isError = true;
+            }
+
+            return Ok(new FileResponseViewModel<List<Models.File>>(content: files, isError: isError, errors));
         }
 
         /// <summary>

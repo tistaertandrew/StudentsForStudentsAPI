@@ -3,13 +3,14 @@
     public class UploadFileViewModel
     {
         public string Content { get; set; } = string.Empty;
-        public string FileName { get; set; } = string.Empty;
+        public string Filename { get; set; } = string.Empty;
         public string Extension { get; set; } = string.Empty;
 
-        public UploadFileViewModel(string content, string fileName)
+        public UploadFileViewModel(string content, string filename, string extension)
         {
             Content = content;
-            FileName = fileName;
+            Filename = filename;
+            Extension = extension;
         }
     }
 }
