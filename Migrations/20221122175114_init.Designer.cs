@@ -12,7 +12,7 @@ using StudentsForStudentsAPI.Models;
 namespace StudentsForStudentsAPI.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    [Migration("20221122120630_init")]
+    [Migration("20221122175114_init")]
     partial class init
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -446,6 +446,9 @@ namespace StudentsForStudentsAPI.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<DateTime>("CreationDate")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Extension")
                         .IsRequired()

@@ -4,6 +4,7 @@
     {
         public string Filename { get; set; } = string.Empty;
         public string OwnerName { get; set; } = string.Empty;
+        public DateTime CreationDate { get; set; } = DateTime.Now;
         public string OwnerId { get; set; }
         public int FileId { get; set; }
     }

@@ -89,7 +89,7 @@ namespace StudentsForStudentsAPI.Controllers
             }
 
             var errors = new List<string>();
-            var file = new Models.File { Name = request.Filename, Extension = request.Extension };
+            var file = new Models.File { Name = request.Filename, Extension = request.Extension, CreationDate = DateTime.Now };
             User user;
             bool isError = false;
 
@@ -153,6 +153,7 @@ namespace StudentsForStudentsAPI.Controllers
                 {
                     FileId = file.Id,
                     Filename = file.Name,
+                    CreationDate = file.CreationDate,
                     OwnerId = file?.Owner.Id,
                     OwnerName =  file.Owner?.UserName
                 });
