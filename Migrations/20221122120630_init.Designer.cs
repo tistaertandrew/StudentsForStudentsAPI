@@ -12,8 +12,8 @@ using StudentsForStudentsAPI.Models;
 namespace StudentsForStudentsAPI.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    [Migration("20221120130636_ajout-model-fichier")]
-    partial class ajoutmodelfichier
+    [Migration("20221122120630_init")]
+    partial class init
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -455,12 +455,12 @@ namespace StudentsForStudentsAPI.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("OnwerId")
+                    b.Property<string>("OwnerId")
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("OnwerId");
+                    b.HasIndex("OwnerId");
 
                     b.ToTable("Files");
                 });
@@ -753,11 +753,11 @@ namespace StudentsForStudentsAPI.Migrations
 
             modelBuilder.Entity("StudentsForStudentsAPI.Models.File", b =>
                 {
-                    b.HasOne("StudentsForStudentsAPI.Models.User", "Onwer")
+                    b.HasOne("StudentsForStudentsAPI.Models.User", "Owner")
                         .WithMany()
-                        .HasForeignKey("OnwerId");
+                        .HasForeignKey("OwnerId");
 
-                    b.Navigation("Onwer");
+                    b.Navigation("Owner");
                 });
 
             modelBuilder.Entity("StudentsForStudentsAPI.Models.Form", b =>
