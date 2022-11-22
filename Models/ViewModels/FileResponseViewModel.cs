@@ -4,7 +4,6 @@ namespace StudentsForStudentsAPI.Models.ViewModels
 {
     public class FileResponseViewModel<T>
     {
-
         public T? Content { get; set; }
         public bool IsError { get; set; } = false;
         public List<string> Errors { get; set; } = new List<string>();

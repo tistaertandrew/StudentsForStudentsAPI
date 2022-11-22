@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using StudentsForStudentsAPI.Models;
 
@@ -11,9 +12,10 @@ using StudentsForStudentsAPI.Models;
 namespace StudentsForStudentsAPI.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    partial class DatabaseContextModelSnapshot : ModelSnapshot
+    [Migration("20221120130636_ajout-model-fichier")]
+    partial class ajoutmodelfichier
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -453,12 +455,12 @@ namespace StudentsForStudentsAPI.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("OwnerId")
+                    b.Property<string>("OnwerId")
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("OwnerId");
+                    b.HasIndex("OnwerId");
 
                     b.ToTable("Files");
                 });
@@ -751,11 +753,11 @@ namespace StudentsForStudentsAPI.Migrations
 
             modelBuilder.Entity("StudentsForStudentsAPI.Models.File", b =>
                 {
-                    b.HasOne("StudentsForStudentsAPI.Models.User", "Owner")
+                    b.HasOne("StudentsForStudentsAPI.Models.User", "Onwer")
                         .WithMany()
-                        .HasForeignKey("OwnerId");
+                        .HasForeignKey("OnwerId");
 
-                    b.Navigation("Owner");
+                    b.Navigation("Onwer");
                 });
 
             modelBuilder.Entity("StudentsForStudentsAPI.Models.Form", b =>

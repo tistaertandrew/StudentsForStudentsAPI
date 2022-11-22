@@ -120,6 +120,7 @@ namespace StudentsForStudentsAPI.Services.FileTransfer
                 if (!_connected)
                 {
                     _client.Connect();
+                    bool a = _client.IsConnected;
                     _connected = true;
                 }
             }

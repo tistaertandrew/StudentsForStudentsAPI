@@ -95,15 +95,14 @@ namespace StudentsForStudentsAPI.Controllers
 
             try
             {
-                ThrowExceptionIfFileAlreadyExistsInRemoteServer(file);
+                ThrowExceptionIfFileEntryAlreadyExists(file);
                 user = GetCurrentUserFromToken();
-                file.Onwer = user;
+                file.Owner = user;
                 UploadFileToRemoteServer(file, request.Content);
                 SaveFileEntryToDatabase(file);
             }
             catch (Exception e)
             {
-                DeleteFileFromRemoteServerIfExists(file, errors);
                 errors.Add(e.Message);
                 isError = true;
             }
@@ -111,7 +110,7 @@ namespace StudentsForStudentsAPI.Controllers
             return Ok(new FileResponseViewModel<string>(isError: isError, errors));
         }
 
-        [HttpDelete("{filename}")]
+        [HttpDelete]
         [Produces("application/json")]
         public IActionResult DeleteFile(string filename)
         {
@@ -122,11 +121,11 @@ namespace StudentsForStudentsAPI.Controllers
 
             try
             {
-                //ThrowExceptionIfClientIsNotConnectedToRemoteServer();
                 dbFile = GetFileEntryFromDatabaseByName(filename);
                 user = GetCurrentUserFromToken();
                 ThrowExceptionIfCurrentUserDontOwnFile(dbFile);
                 DeleteFileFromRemoteServer(dbFile);
+                RemoveFromDatabaseIfExists(dbFile);
             }
             catch (Exception e)
             {
@@ -148,7 +147,17 @@ namespace StudentsForStudentsAPI.Controllers
 
             try
             {
-                files = _context.Files.ToList();
+                files = _context.Files.Include(file => file.Owner).ToList();
+
+                var mapped = files.Select(file => new FileViewModel
+                {
+                    FileId = file.Id,
+                    Filename = file.Name,
+                    OwnerId = file?.Owner.Id,
+                    OwnerName =  file.Owner?.UserName
+                });
+
+                return Ok(new FileResponseViewModel<IEnumerable<FileViewModel>>(content: mapped, isError: isError, errors));
             }
             catch (Exception e)
             {
@@ -159,26 +168,34 @@ namespace StudentsForStudentsAPI.Controllers
             return Ok(new FileResponseViewModel<List<Models.File>>(content: files, isError: isError, errors));
         }
 
-        /// <summary>
-        /// Delete file from remote server if exists. If errors param is given then, on exception, errors messages will be added to without throwing exception.
-        /// </summary>
-        /// <param name="file"></param>
-        /// <param name="errors"></param>
-        /// <exception cref="Exception">If errors happpens while testing existence and deleting. If errors param is given then errors message be added to without throwing exception</exception>
-        private void DeleteFileFromRemoteServerIfExists(Models.File file, List<string>? errors = default)
+        private void ThrowExceptionIfFileEntryAlreadyExists(Models.File file)
         {
             try
             {
-                if (FileExistsInRemoteServer(file))
+                if (IsFileEntryExistsInDatabase(file))
                 {
-                    DeleteFileFromRemoteServer(file);
+                    throw new Exception("File name already taken");
                 }
             }
             catch (Exception e)
             {
-                if (errors != null) errors.Add(e.Message);
-                else throw new Exception($"Error while deleting file if exists from remote server: {e.Message}");
+                throw new Exception($"Error while testing file's name existence: {e.Message}");
             }
+        }
+
+        private void RemoveFromDatabaseIfExists(Models.File file)
+        {
+            if (IsFileEntryExistsInDatabase(file))
+            {
+                
+                _context.Files.Remove(file);
+                _context.SaveChanges();
+            }
+        }
+
+        private bool IsFileEntryExistsInDatabase(Models.File file)
+        {
+            return _context.Files.Any(current => current.Name.Equals(file.Name));
         }
 
         /// <summary>
@@ -197,28 +214,6 @@ namespace StudentsForStudentsAPI.Controllers
             catch (Exception e)
             {
                 throw new Exception($"Error while saving file entry to database: {e.Message}");
-            }
-        }
-
-        /// <summary>
-        /// Demand if working directory exists in remote server, if false throw exeption
-        /// </summary>
-        /// <exception cref="Exception">if working directory does nnot exists in remote server</exception>
-        private void ThrowExceptionIfWorkingDirectoryDoesNotExistsInRemoteServer()
-        {
-            if (!FileExistsInRemoteServer(_remoteWorkingDirectory)) throw new Exception("Working directory does not exists in remote server");
-        }
-
-        /// <summary>
-        /// Demand if a file path exists in remote server, if true throw exception
-        /// </summary>
-        /// <param name="file">the path to the file to test existence in remote</param>
-        /// <exception cref="Exception">if the file does exists in remote</exception>
-        private void ThrowExceptionIfFileAlreadyExistsInRemoteServer(Models.File file)
-        {
-            if (FileExistsInRemoteServer(file))
-            {
-                throw new Exception("File already exists in remote");
             }
         }
 
@@ -245,7 +240,7 @@ namespace StudentsForStudentsAPI.Controllers
         {
             try
             {
-                var query = _context.Files.Where(file => file.Name == filename).Include(file => file.Onwer);
+                var query = _context.Files.Where(file => file.Name == filename).Include(file => file.Owner);
                 if (!query.Any()) throw new Exception($"No file with name '{filename}' was found");
                 return query.First();
             }
@@ -281,7 +276,7 @@ namespace StudentsForStudentsAPI.Controllers
             try
             {
                 var user = GetCurrentUserFromToken();
-                if (user.Id != file.Onwer.Id)
+                if (user.Id != file.Owner.Id)
                     throw new Exception($"Current user don't own the file '{file.Name}'");
             }
             catch (Exception e)
@@ -306,15 +301,6 @@ namespace StudentsForStudentsAPI.Controllers
             {
                 throw new Exception($"Error while uploading file to remote server: {e.Message}");
             }
-        }
-
-        /// <summary>
-        /// List files from remote server
-        /// </summary>
-        /// <returns>List of files name</returns>
-        private List<string> ListFileFromRemoteServer()
-        {
-            return _fileTransfer.ListFilesName(_remoteWorkingDirectory);
         }
 
         /// <summary>
@@ -364,24 +350,11 @@ namespace StudentsForStudentsAPI.Controllers
         }
 
         /// <summary>
-        /// Demand if the client is connected to remote server
-        /// </summary>
-        /// <returns>true if the client is connected, otherwise false</returns>
-        private bool IsClientConnectedToRemotetServer() => _fileTransfer.ClientIsConnected();
-
-        /// <summary>
         /// Demand if a file exists in remote server
         /// </summary>
         /// <param name="file"></param>
         /// <returns>true if the file exists, otherwise false</returns>
         private bool FileExistsInRemoteServer(Models.File file) => _fileTransfer.FileExists(GetPathToFileInRemoteServer(file));
-
-        /// <summary>
-        /// Demand if a file path exists in reomte server
-        /// </summary>
-        /// <param name="filePath"></param>
-        /// <returns>true if the file exists, otherwise false</returns>
-        private bool FileExistsInRemoteServer(string filePath) => _fileTransfer.FileExists(filePath);
 
         protected override void Dispose(bool disposing)
         {
