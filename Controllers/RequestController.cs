@@ -111,7 +111,7 @@ namespace StudentsForStudentsAPI.Controllers
                 _context.Requests.Add(newRequest);
                 _context.SaveChanges();
                 
-                return Ok(new SuccessViewModel(false, "Requête créée avec succès"));
+                return Ok(new SuccessViewModel(false, "Demande créée avec succès"));
             } catch(Exception)
             {
                 return BadRequest(new ErrorViewModel(true, "Informations invalides"));
