@@ -50,37 +50,66 @@ namespace StudentsForStudentsAPI.Controllers
             }
         }
 
-        [HttpGet]
+        [HttpGet("{own}")]
         [Authorize(Roles = "Member,Admin")]
         [Produces("application/json")]
-        public IActionResult GetRequests()
+        public IActionResult GetRequests(bool own)
         {
             if (!ModelState.IsValid) return BadRequest(new ErrorViewModel(true, "Informations invalides"));
             if (!_userService.IsTokenValid()) return Unauthorized();
-
-            var requests = _context.Requests
-                .Include(r => r.Place)
-                .Include(r => r.Course)
-                .ThenInclude(c => c.Cursus)
-                .ThenInclude(c => c.Section)
-                .Include(r => r.Sender)
-                .Where(r => r.Sender.Id != _userService.GetUserIdFromToken() && !r.Status)
-                .OrderBy(r => r.Date)
-                .ToList();
-
-            var finalRequests = requests.Select(r => new 
+            
+            if (!own)
             {
-                id = r.Id,
-                name = r.Name,
-                description = r.Description,
-                date = r.Date.ToString("dd/MM/yyyy"),
-                status = r.Status,
-                sender = r.Sender.UserName,
-                place = r.Place,
-                course = r.Course
-            });
+                var requests = _context.Requests
+                    .Include(r => r.Place)
+                    .Include(r => r.Course)
+                    .ThenInclude(c => c.Cursus)
+                    .ThenInclude(c => c.Section)
+                    .Include(r => r.Sender)
+                    .Where(r => r.Sender.Id != _userService.GetUserIdFromToken() && !r.Status)
+                    .OrderBy(r => r.Date)
+                    .ToList();
 
-            return Ok(finalRequests);
+                var finalRequests = requests.Select(r => new
+                {
+                    id = r.Id,
+                    name = r.Name,
+                    description = r.Description,
+                    date = r.Date.ToString("dd/MM/yyyy"),
+                    status = r.Status,
+                    sender = r.Sender.UserName,
+                    place = r.Place,
+                    course = r.Course
+                });
+
+                return Ok(finalRequests);
+            } else
+            {
+                var requests = _context.Requests
+                    .Include(r => r.Place)
+                    .Include(r => r.Course)
+                    .ThenInclude(c => c.Cursus)
+                    .ThenInclude(c => c.Section)
+                    .Include(r => r.Sender)
+                    .Where(r => r.Sender.Id == _userService.GetUserIdFromToken())
+                    .OrderBy(r => r.Date)
+                    .ToList();
+
+                var finalRequests = requests.Select(r => new
+                {
+                    id = r.Id,
+                    name = r.Name,
+                    description = r.Description,
+                    date = r.Date.ToString("dd/MM/yyyy"),
+                    status = r.Status,
+                    sender = r.Sender.UserName,
+                    place = r.Place,
+                    course = r.Course
+                });
+
+                return Ok(finalRequests);
+            }
+                
         }
 
         [HttpPost]
