@@ -52,6 +52,14 @@ namespace StudentsForStudentsAPI.Controllers
             _regexToRemoveRootFilesFromFileList = new Regex(@"^(\.+)$");
         }
 
+        [AllowAnonymous]
+        [HttpGet("Count")]
+        [Produces("application/json")]
+        public ActionResult GetFilesCount()
+        {
+            return Ok(_context.Files.Count());
+        }
+
         [HttpGet("{filename}")]
         [Produces("application/json")]
         public IActionResult DownloadFile(string filename)

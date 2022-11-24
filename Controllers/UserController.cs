@@ -64,6 +64,14 @@ namespace StudentsForStudentsAPI.Controllers
         }
 
         [AllowAnonymous]
+        [HttpGet("Count")]
+        [Produces("application/json")]
+        public ActionResult GetUsersCount()
+        {
+            return Ok(_context.Users.Count());
+        }
+
+        [AllowAnonymous]
         [HttpPost("Google")]
         [Produces("application/json")]
         public async Task<ActionResult<UserViewModel>> Google(OAuthViewModel request)
