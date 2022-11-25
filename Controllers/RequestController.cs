@@ -27,6 +27,25 @@ namespace StudentsForStudentsAPI.Controllers
             _userManager = userManager;
         }
 
+        [HttpDelete("{requestId}")]
+        [Authorize(Roles = "Member,Admin")]
+        [Produces("application/json")]
+        public IActionResult DeleteRequest(int requestId)
+        {
+            if (!_userService.IsTokenValid()) return Unauthorized();
+            var request = _context.Requests.Include(r => r.Sender).Where(r => r.Id == requestId).FirstOrDefault();
+            if (request == null) return NotFound(new ErrorViewModel(true, "La demande n'existe pas"));
+
+            var user = _userManager.FindByIdAsync(_userService.GetUserIdFromToken()).Result;
+            if (user == null) return NotFound(new ErrorViewModel(true, "L'utilisateur n'existe pas"));
+            if (!request.Sender.Id.Equals(user.Id)) return BadRequest(new ErrorViewModel(true, "Vous n'avez pas le droit de supprimer une demande qui vous n'appartient pas"));
+            if (request.Status) return BadRequest(new ErrorViewModel(true, "Vous ne pouvez pas supprimer une demande acceptée"));
+
+            _context.Requests.Remove(request);
+            _context.SaveChanges();
+            return Ok(new SuccessViewModel(false, "Demande supprimée avec succès"));
+        }
+
         [HttpPut("{requestId}")]
         [Authorize(Roles = "Member,Admin")]
         [Produces("application/json")]
@@ -78,6 +97,7 @@ namespace StudentsForStudentsAPI.Controllers
                     date = r.Date.ToString("dd/MM/yyyy"),
                     status = r.Status,
                     sender = r.Sender.UserName,
+                    handler = "nobody",
                     place = r.Place,
                     course = r.Course
                 });
@@ -91,7 +111,8 @@ namespace StudentsForStudentsAPI.Controllers
                     .ThenInclude(c => c.Cursus)
                     .ThenInclude(c => c.Section)
                     .Include(r => r.Sender)
-                    .Where(r => r.Sender.Id == _userService.GetUserIdFromToken())
+                    .Include(r => r.Handler)
+                    .Where(r => r.Sender.Id == _userService.GetUserIdFromToken() || r.Handler.Id == _userService.GetUserIdFromToken() || r.Handler.Id == _userService.GetUserIdFromToken())
                     .OrderBy(r => r.Date)
                     .ToList();
 
@@ -103,6 +124,7 @@ namespace StudentsForStudentsAPI.Controllers
                     date = r.Date.ToString("dd/MM/yyyy"),
                     status = r.Status,
                     sender = r.Sender.UserName,
+                    handler = r.Handler == null ? "nobody" : r.Handler.UserName,
                     place = r.Place,
                     course = r.Course
                 });
