@@ -19,11 +19,19 @@ namespace StudentsForStudentsAPI.Services.MailService
             mail.To.Add(MailboxAddress.Parse(to));
             mail.Subject = subject;
             mail.Body = new TextPart(MimeKit.Text.TextFormat.Plain) { Text = body };
-
-            using var smtp = new SmtpClient();
-            smtp.Connect(_config["MailSettings:ServerName"], int.Parse(_config["MailSettings:ServerPort"]), MailKit.Security.SecureSocketOptions.None);
-            smtp.Send(mail);
-            smtp.Disconnect(true);
+            new Thread(new ThreadStart(() =>
+            {
+                var smtp = new SmtpClient();
+                try
+                {
+                    smtp.Connect(_config["MailSettings:ServerName"],
+                        int.Parse(_config["MailSettings:ServerPort"]),
+                        MailKit.Security.SecureSocketOptions.None);
+                    smtp.Send(mail);
+                }
+                catch (Exception) { }
+                finally { smtp.Disconnect(true); }
+            })).Start();
         }
     }
 }
