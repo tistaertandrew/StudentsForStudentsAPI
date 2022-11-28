@@ -19,6 +19,7 @@ namespace StudentsForStudentsAPI.Services.MailService
             mail.To.Add(MailboxAddress.Parse(to));
             mail.Subject = subject;
             mail.Body = new TextPart(MimeKit.Text.TextFormat.Plain) { Text = body };
+            
             new Thread(new ThreadStart(() =>
             {
                 var smtp = new SmtpClient();
