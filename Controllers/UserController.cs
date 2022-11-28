@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using StudentsForStudentsAPI.Models;
 using StudentsForStudentsAPI.Models.ViewModels;
 using StudentsForStudentsAPI.Services;
+using StudentsForStudentsAPI.Services.MailService;
 using System.Security.Claims;
 
 namespace StudentsForStudentsAPI.Controllers
@@ -20,13 +21,15 @@ namespace StudentsForStudentsAPI.Controllers
         private readonly UserManager<User> _userManager;
         private readonly IConfiguration _config;
         private readonly IUserService _userService;
+        private readonly IMailService _mailService;
 
-        public UserController(DatabaseContext context, UserManager<User> userManager, IConfiguration config, IUserService userService)
+        public UserController(DatabaseContext context, UserManager<User> userManager, IConfiguration config, IUserService userService, IMailService mailService)
         {
             _context = context;
             _userManager = userManager;
             _config = config;
             _userService = userService;
+            _mailService = mailService;
         }
 
         [HttpPut("{calendarLink}")]
@@ -148,6 +151,7 @@ namespace StudentsForStudentsAPI.Controllers
 
                 await _userManager.AddToRoleAsync(user, "Member");
                 user.Cursus = _context.Users.Where(u => u.Id == user.Id).Include(u => u.Cursus).ThenInclude(c => c.Section).FirstOrDefault().Cursus;
+                _mailService.SendMail(user.Email, "Bienvenue sur Students for Students !", "Bonjour " + user.UserName + ",\n\nNous vous souhaitons la bienvenue sur notre application Students for Students !\n\nCordialement,\nL'équipe de Students for Students");
                 return Ok(new SuccessViewModel(false, "Compte créé avec succès"));
 
             }
