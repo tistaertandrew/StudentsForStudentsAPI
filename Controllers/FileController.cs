@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -8,7 +7,6 @@ using StudentsForStudentsAPI.Models;
 using StudentsForStudentsAPI.Models.ViewModels;
 using StudentsForStudentsAPI.Services;
 using StudentsForStudentsAPI.Services.FileTransfer;
-using System.Text.RegularExpressions;
 
 namespace StudentsForStudentsAPI.Controllers
 {
@@ -34,11 +32,6 @@ namespace StudentsForStudentsAPI.Controllers
         private readonly string _home;
         private readonly string _remoteWorkingDirectory;
 
-        /// <summary>
-        /// Regex to remove files like (. or ..) from list of files
-        /// </summary>
-        private readonly Regex _regexToRemoveRootFilesFromFileList;
-
         public FileController(DatabaseContext context, UserManager<User> userManager, IUserService userService)
         {
             _context = context;
@@ -49,7 +42,6 @@ namespace StudentsForStudentsAPI.Controllers
 
             _home = $"{_rootRemoteDirectory}/{_username}";
             _remoteWorkingDirectory = $"{_home}/{_filesRemoteDirectory}";
-            _regexToRemoveRootFilesFromFileList = new Regex(@"^(\.+)$");
         }
 
         [AllowAnonymous]
@@ -144,7 +136,6 @@ namespace StudentsForStudentsAPI.Controllers
             return Ok(new FileResponseViewModel<string>(isError: isError, errors));
         }
 
-
         [HttpGet]
         [Produces("application/json")]
         public IActionResult GetFilesMetadata()
@@ -163,7 +154,7 @@ namespace StudentsForStudentsAPI.Controllers
                     Filename = file.Name,
                     CreationDate = file.CreationDate,
                     OwnerId = file?.Owner.Id,
-                    OwnerName =  file.Owner?.UserName
+                    OwnerName = file.Owner?.UserName
                 });
 
                 return Ok(new FileResponseViewModel<IEnumerable<FileViewModel>>(content: mapped, isError: isError, errors));
