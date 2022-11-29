@@ -4,6 +4,7 @@
     {
         public int Id { get; set; }
         public DateTime Date { get; set; } = DateTime.Now;
+        public string Subject { get; set; }
         public string Message { get; set; }
         public bool Status { get; set; } = false;
         public string? SenderEmail { get; set; }

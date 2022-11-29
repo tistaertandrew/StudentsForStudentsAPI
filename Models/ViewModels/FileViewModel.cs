@@ -3,6 +3,7 @@
     public class FileViewModel
     {
         public string Filename { get; set; } = string.Empty;
+        public Course Course { get; set; }
         public string OwnerName { get; set; } = string.Empty;
         public DateTime CreationDate { get; set; } = DateTime.Now;
         public string OwnerId { get; set; }

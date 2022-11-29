@@ -445,6 +445,9 @@ namespace StudentsForStudentsAPI.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
+                    b.Property<int>("CourseId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("CreationDate")
                         .HasColumnType("datetime2");
 
@@ -460,6 +463,8 @@ namespace StudentsForStudentsAPI.Migrations
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CourseId");
 
                     b.HasIndex("OwnerId");
 
@@ -492,6 +497,10 @@ namespace StudentsForStudentsAPI.Migrations
 
                     b.Property<bool>("Status")
                         .HasColumnType("bit");
+
+                    b.Property<string>("Subject")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
@@ -754,9 +763,17 @@ namespace StudentsForStudentsAPI.Migrations
 
             modelBuilder.Entity("StudentsForStudentsAPI.Models.File", b =>
                 {
+                    b.HasOne("StudentsForStudentsAPI.Models.Course", "Course")
+                        .WithMany()
+                        .HasForeignKey("CourseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("StudentsForStudentsAPI.Models.User", "Owner")
                         .WithMany()
                         .HasForeignKey("OwnerId");
+
+                    b.Navigation("Course");
 
                     b.Navigation("Owner");
                 });

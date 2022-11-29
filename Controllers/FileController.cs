@@ -97,7 +97,7 @@ namespace StudentsForStudentsAPI.Controllers
             }
 
             var errors = new List<string>();
-            var file = new Models.File { Name = request.Filename, Extension = request.Extension, CreationDate = DateTime.Now };
+            var file = new Models.File { Course = _context.Courses.Include(c => c.Cursus).ThenInclude(c => c.Section).Where(c => c.Id == request.CourseId).First(), Name = request.Filename, Extension = request.Extension, CreationDate = DateTime.Now };
             User user;
             bool isError = false;
 
@@ -155,12 +155,13 @@ namespace StudentsForStudentsAPI.Controllers
 
             try
             {
-                files = _context.Files.Include(file => file.Owner).ToList();
+                files = _context.Files.Include(file => file.Owner).Include(f => f.Course).ThenInclude(c => c.Cursus).ThenInclude(c => c.Section).ToList();
 
                 var mapped = files.Select(file => new FileViewModel
                 {
                     FileId = file.Id,
                     Filename = file.Name,
+                    Course = file.Course,
                     CreationDate = file.CreationDate,
                     OwnerId = file?.Owner.Id,
                     OwnerName =  file.Owner?.UserName
