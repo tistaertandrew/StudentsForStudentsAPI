@@ -6,6 +6,7 @@ using Microsoft.OpenApi.Models;
 using StudentsForStudentsAPI;
 using StudentsForStudentsAPI.Models;
 using StudentsForStudentsAPI.Services;
+using StudentsForStudentsAPI.Services.MailService;
 using Swashbuckle.AspNetCore.Filters;
 using System.Text;
 
@@ -28,6 +29,7 @@ builder.Services.AddCors(p => p.AddPolicy("StudentsForStudents", builder =>
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IMailService, MailService>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddDbContext<DatabaseContext>(options => options.UseSqlServer(connectionString));
 

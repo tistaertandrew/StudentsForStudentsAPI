@@ -39,6 +39,7 @@ namespace StudentsForStudentsAPI.Controllers
             else form.Sender = user;
 
             form.Date = DateTime.Now;
+            form.Subject = request.Subject;
             form.Message = request.Message;
             form.Status = false;
 
