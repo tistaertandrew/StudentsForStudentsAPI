@@ -151,7 +151,7 @@ namespace StudentsForStudentsAPI.Controllers
 
                 await _userManager.AddToRoleAsync(user, "Member");
                 user.Cursus = _context.Users.Where(u => u.Id == user.Id).Include(u => u.Cursus).ThenInclude(c => c.Section).FirstOrDefault().Cursus;
-                _mailService.SendMail(user.Email, "Bienvenue sur Students for Students !", "Bonjour " + user.UserName + ",\n\nNous vous souhaitons la bienvenue sur notre application Students for Students !\n\nCordialement,\nL'équipe de Students for Students.");
+                _mailService.SendMail("Bienvenue sur Students for Students !", "Bonjour " + user.UserName + ",\n\nNous vous souhaitons la bienvenue sur notre application Students for Students !\n\nCordialement,\nL'équipe de Students for Students.", user.Email, null);
                 return Ok(new SuccessViewModel(false, "Compte créé avec succès"));
 
             }
