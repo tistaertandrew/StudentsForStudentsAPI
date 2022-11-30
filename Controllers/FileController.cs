@@ -8,6 +8,7 @@ using StudentsForStudentsAPI.Models;
 using StudentsForStudentsAPI.Models.ViewModels;
 using StudentsForStudentsAPI.Services;
 using StudentsForStudentsAPI.Services.FileTransfer;
+using StudentsForStudentsAPI.Services.MailService;
 using System.Text.RegularExpressions;
 
 namespace StudentsForStudentsAPI.Controllers
@@ -20,6 +21,7 @@ namespace StudentsForStudentsAPI.Controllers
         private readonly DatabaseContext _context;
         private readonly UserManager<User> _userManager;
         private readonly IUserService _userService;
+        private readonly IMailService _mailService;
 
         private readonly FtpFileTransfer _fileTransfer;
 
@@ -39,11 +41,12 @@ namespace StudentsForStudentsAPI.Controllers
         /// </summary>
         private readonly Regex _regexToRemoveRootFilesFromFileList;
 
-        public FileController(DatabaseContext context, UserManager<User> userManager, IUserService userService)
+        public FileController(DatabaseContext context, UserManager<User> userManager, IUserService userService, IMailService mailService)
         {
             _context = context;
             _userManager = userManager;
             _userService = userService;
+            _mailService = mailService;
 
             _fileTransfer = new FtpFileTransfer(new ClientConnexionInfo(_host, _username, _password));
 
@@ -108,6 +111,8 @@ namespace StudentsForStudentsAPI.Controllers
                 file.Owner = user;
                 UploadFileToRemoteServer(file, request.Content);
                 SaveFileEntryToDatabase(file);
+
+                _mailService.SendMail($"Ajout de votre synthèse {file.Name}", $"Bonjour {user.UserName}, \n\nVotre synthèse {file.Name} a été ajoutée avec succès. Cette dernière peut être consultée depuis la section \"Synthèses\" de l'application.\n\nCordialement,\nL'équipe de Students for Students.", user.Email, null);
             }
             catch (Exception e)
             {
@@ -134,6 +139,8 @@ namespace StudentsForStudentsAPI.Controllers
                 ThrowExceptionIfCurrentUserDontOwnFile(dbFile);
                 DeleteFileFromRemoteServer(dbFile);
                 RemoveFromDatabaseIfExists(dbFile);
+
+                _mailService.SendMail($"Suppression de votre synthèse {dbFile.Name}", $"Bonjour {user.UserName}, \n\nVotre synthèse {dbFile.Name} a été supprimée avec succès.\n\nCordialement,\nL'équipe de Students for Students.", user.Email, null);
             }
             catch (Exception e)
             {
