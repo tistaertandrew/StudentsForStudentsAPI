@@ -60,14 +60,14 @@ namespace StudentsForStudentsAPI.Controllers
             var errors = new List<string>();
             User user;
             bool isError = false;
-            string content = string.Empty;
+            string text = string.Empty;
 
             try
             {
                 dbFile = GetFileEntryFromDatabaseByName(filename);
                 ThrowExceptionIfFileDoesNotExistsInRemoteServer(dbFile);
                 user = GetCurrentUserFromToken();
-                content = GetFileContentFromRemoteServer(dbFile);
+                text = GetFileContentFromRemoteServer(dbFile);
             }
             catch (Exception e)
             {
@@ -75,7 +75,7 @@ namespace StudentsForStudentsAPI.Controllers
                 isError = true;
             }
 
-            return Ok(new FileResponseViewModel<string>(content: content, isError: isError, errors));
+            return Ok(new FileResponseViewModel<string>(content: text, isError: isError, errors));
         }
 
         [Authorize(Roles = "Member, Admin")]
@@ -155,7 +155,8 @@ namespace StudentsForStudentsAPI.Controllers
                     Course = file.Course,
                     CreationDate = file.CreationDate,
                     OwnerId = file?.Owner.Id,
-                    OwnerName = file.Owner?.UserName
+                    OwnerName = file.Owner?.UserName,
+                    Extension = file.Extension
                 });
 
                 return Ok(new FileResponseViewModel<IEnumerable<FileViewModel>>(content: mapped, isError: isError, errors));
