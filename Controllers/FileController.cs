@@ -112,7 +112,7 @@ namespace StudentsForStudentsAPI.Controllers
                 UploadFileToRemoteServer(file, request.Content);
                 SaveFileEntryToDatabase(file);
 
-                _mailService.SendMail($"Ajout de votre synthèse {file.Name}", $"Bonjour {user.UserName}, \n\nVotre synthèse {file.Name} a été ajoutée avec succès. Cette dernière peut être consultée depuis la section \"Synthèses\" de l'application.\n\nCordialement,\nL'équipe de Students for Students.", user.Email, null);
+                _mailService.SendMail($"Ajout de votre synthèse \"{file.Name}\"", $"Bonjour {user.UserName}, \n\nVotre synthèse \"{file.Name}\" a été ajoutée avec succès. Cette dernière peut être consultée depuis la section \"Synthèses\" de l'application.\n\nCordialement,\nL'équipe de Students for Students.", user.Email, null);
             }
             catch (Exception e)
             {
@@ -140,7 +140,7 @@ namespace StudentsForStudentsAPI.Controllers
                 DeleteFileFromRemoteServer(dbFile);
                 RemoveFromDatabaseIfExists(dbFile);
 
-                _mailService.SendMail($"Suppression de votre synthèse {dbFile.Name}", $"Bonjour {user.UserName}, \n\nVotre synthèse {dbFile.Name} a été supprimée avec succès.\n\nCordialement,\nL'équipe de Students for Students.", user.Email, null);
+                _mailService.SendMail($"Suppression de votre synthèse \"{dbFile.Name}\"", $"Bonjour {user.UserName}, \n\nVotre synthèse \"{dbFile.Name}\" a été supprimée avec succès.\n\nCordialement,\nL'équipe de Students for Students.", user.Email, null);
             }
             catch (Exception e)
             {
