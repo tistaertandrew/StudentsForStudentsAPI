@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using StudentsForStudentsAPI.Models;
 using StudentsForStudentsAPI.Models.ViewModels;
+using StudentsForStudentsAPI.Services.MailService;
 
 namespace StudentsForStudentsAPI.Controllers
 {
@@ -15,11 +16,13 @@ namespace StudentsForStudentsAPI.Controllers
     {
         private readonly DatabaseContext _context;
         private readonly UserManager<User> _userManager;
+        private readonly IMailService _mailService;
 
-        public ContactController(DatabaseContext context, UserManager<User> userManager)
+        public ContactController(DatabaseContext context, UserManager<User> userManager, IMailService mailService)
         {
             _context = context;
             _userManager = userManager;
+            _mailService = mailService;
         }
 
         [AllowAnonymous]
@@ -42,6 +45,9 @@ namespace StudentsForStudentsAPI.Controllers
             form.Subject = request.Subject;
             form.Message = request.Message;
             form.Status = false;
+
+            _mailService.SendMail(form.Subject, form.Message, null, request.Email);
+            _mailService.SendMail("Prise de contact avec un administrateur", "Bonjour, \n\nVotre prise de contact a bien été prise en compte. Nous vous répondrons dans les plus brefs délais.\n\nCordialement,\nL'équipe de Students for Students.", request.Email, null);
 
             _context.Forms.Add(form);
             _context.SaveChanges();

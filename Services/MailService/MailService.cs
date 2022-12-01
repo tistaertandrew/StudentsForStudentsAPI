@@ -12,11 +12,11 @@ namespace StudentsForStudentsAPI.Services.MailService
             _config = config;
         }
 
-        public void SendMail(string to, string subject, string body, string? from = null)
+        public void SendMail(string subject, string body, string? to = null, string? from = null)
         {
             var mail = new MimeMessage();
             mail.From.Add(MailboxAddress.Parse(from ?? _config["MailSettings:ServerFrom"]));
-            mail.To.Add(MailboxAddress.Parse(to));
+            mail.To.Add(MailboxAddress.Parse(to ?? _config["MailSettings:ServerAdmin"]));
             mail.Subject = subject;
             mail.Body = new TextPart(MimeKit.Text.TextFormat.Plain) { Text = body };
             
