@@ -45,7 +45,7 @@ namespace StudentsForStudentsAPI.Controllers
             if (!request.Sender.Id.Equals(user.Id)) return BadRequest(new ErrorViewModel(true, "Vous n'avez pas le droit de supprimer une demande qui vous n'appartient pas"));
             if (request.Status) return BadRequest(new ErrorViewModel(true, "Vous ne pouvez pas supprimer une demande acceptée"));
             
-            _mailService.SendMail($"Suppression de la demande {request.Name}", $"Bonjour {user.UserName}, \n\nVotre demande {request.Name} a bien été supprimée. \n\nCordialement, \nL'équipe de Students for Students.", user.Email, null);
+            _mailService.SendMail($"Suppression de la demande \"{request.Name}\"", $"Bonjour {user.UserName}, \n\nVotre demande \"{request.Name}\" a bien été supprimée. \n\nCordialement, \nL'équipe de Students for Students.", user.Email, null);
             _context.Requests.Remove(request);
             _context.SaveChanges();
             return Ok(new SuccessViewModel(false, "Demande supprimée avec succès"));
@@ -70,8 +70,8 @@ namespace StudentsForStudentsAPI.Controllers
                 request.Status = !request.Status;
                 request.Handler = user;
 
-                _mailService.SendMail($"Demande \"{request.Name}\" acceptée", $"Bonjour ${request.Sender.UserName}, \n\nVotre demande \"{request.Name}\" a été acceptée par ${request.Handler.UserName}. N'hésitez pas à vous rendre dans la section \"Mes demandes\" pour la consulter. \n\nCordialement, \nL'équipe de Students for Students.", request.Sender.Email, null);
-                _mailService.SendMail($"Demande \"{request.Name}\" acceptée", $"Bonjour ${request.Handler.UserName}, \n\nVous avez accepté la demande \"{request.Name}\" de ${request.Sender.UserName}. N'hésitez pas à vous rendre dans la section \"Mes demandes\" pour la consulter. \n\nCordialement, \nL'équipe de Students for Students.", request.Handler.Email, null);
+                _mailService.SendMail($"Demande \"{request.Name}\" acceptée", $"Bonjour {request.Sender.UserName}, \n\nVotre demande \"{request.Name}\" a été acceptée par {request.Handler.UserName}. N'hésitez pas à vous rendre dans la section \"Mes demandes\" pour la consulter. \n\nCordialement, \nL'équipe de Students for Students.", request.Sender.Email, null);
+                _mailService.SendMail($"Demande \"{request.Name}\" acceptée", $"Bonjour {request.Handler.UserName}, \n\nVous avez accepté la demande \"{request.Name}\" de {request.Sender.UserName}. N'hésitez pas à vous rendre dans la section \"Mes demandes\" pour la consulter. \n\nCordialement, \nL'équipe de Students for Students.", request.Handler.Email, null);
                 _context.SaveChanges();
                 return Ok(new SuccessViewModel(false, "Demande acceptée avec succès"));
             }
@@ -167,7 +167,7 @@ namespace StudentsForStudentsAPI.Controllers
                     Course = _context.Courses.Find(request.CourseId)
                 };
 
-                _mailService.SendMail($"Création de la demande {newRequest.Name}", $"Bonjour {user.UserName}, \n\nVotre demande {newRequest.Name} a bien été créée. N'hésitez pas à vous rendre dans la section \"Mes demandes\" pour la consulter. \n\nCordialement, \nL'équipe de Students for Students.", user.Email, null);
+                _mailService.SendMail($"Création de la demande \"{newRequest.Name}\"", $"Bonjour {user.UserName}, \n\nVotre demande \"{newRequest.Name}\" a bien été créée. N'hésitez pas à vous rendre dans la section \"Mes demandes\" pour la consulter. \n\nCordialement, \nL'équipe de Students for Students.", user.Email, null);
                 _context.Requests.Add(newRequest);
                 _context.SaveChanges();
                 
