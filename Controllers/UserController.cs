@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using StudentsForStudentsAPI.Models;
 using StudentsForStudentsAPI.Models.ViewModels;
@@ -22,14 +23,16 @@ namespace StudentsForStudentsAPI.Controllers
         private readonly IConfiguration _config;
         private readonly IUserService _userService;
         private readonly IMailService _mailService;
+        private readonly IHubContext<SignalRHub> _hubContext;
 
-        public UserController(DatabaseContext context, UserManager<User> userManager, IConfiguration config, IUserService userService, IMailService mailService)
+        public UserController(DatabaseContext context, UserManager<User> userManager, IConfiguration config, IUserService userService, IMailService mailService, IHubContext<SignalRHub> hubContext)
         {
             _context = context;
             _userManager = userManager;
             _config = config;
             _userService = userService;
             _mailService = mailService;
+            _hubContext = hubContext;
         }
 
         [HttpPut("{calendarLink}")]
@@ -121,6 +124,7 @@ namespace StudentsForStudentsAPI.Controllers
                     return BadRequest(new ErrorViewModel(true, "Mot de passe invalide"));
                 }
             }
+            
             user.Cursus = _context.Users.Where(u => u.Id == user.Id).Include(u => u.Cursus).ThenInclude(c => c.Section).FirstOrDefault().Cursus;
 
             return Ok(new UserViewModel(user, Token.CreateToken(user, _userManager, _config)));
@@ -151,7 +155,10 @@ namespace StudentsForStudentsAPI.Controllers
 
                 await _userManager.AddToRoleAsync(user, "Member");
                 user.Cursus = _context.Users.Where(u => u.Id == user.Id).Include(u => u.Cursus).ThenInclude(c => c.Section).FirstOrDefault().Cursus;
+                
                 _mailService.SendMail("Bienvenue sur Students for Students !", "Bonjour " + user.UserName + ",\n\nNous vous souhaitons la bienvenue sur notre application Students for Students !\n\nCordialement,\nL'équipe de Students for Students.", user.Email, null);
+                await _hubContext.Clients.All.SendAsync("updateUsersCount");
+
                 return Ok(new SuccessViewModel(false, "Compte créé avec succès"));
 
             }

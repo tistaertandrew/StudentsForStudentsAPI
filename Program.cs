@@ -23,7 +23,7 @@ var connectionString = Configuration.GetConnectionString("default");
 
 builder.Services.AddCors(p => p.AddPolicy("StudentsForStudents", builder =>
 {
-    builder.WithOrigins(Configuration.GetSection("CorsURL").Value).AllowAnyMethod().AllowAnyHeader();
+    builder.WithOrigins(Configuration.GetSection("CorsURL").Value).AllowAnyMethod().AllowAnyHeader().AllowCredentials();
 }));
 
 
@@ -32,6 +32,7 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IMailService, MailService>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddDbContext<DatabaseContext>(options => options.UseSqlServer(connectionString));
+builder.Services.AddSignalR();
 
 builder.Services.AddIdentity<User, IdentityRole>(options =>
 {
@@ -96,5 +97,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.MapHub<SignalRHub>("/Notifications");
 
 app.Run();

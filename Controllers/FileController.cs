@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using StudentsForStudentsAPI.Models;
 using StudentsForStudentsAPI.Models.ViewModels;
@@ -22,6 +23,7 @@ namespace StudentsForStudentsAPI.Controllers
         private readonly UserManager<User> _userManager;
         private readonly IUserService _userService;
         private readonly IMailService _mailService;
+        private readonly IHubContext<SignalRHub> _hubContext;
 
         private readonly FtpFileTransfer _fileTransfer;
 
@@ -41,12 +43,13 @@ namespace StudentsForStudentsAPI.Controllers
         /// </summary>
         private readonly Regex _regexToRemoveRootFilesFromFileList;
 
-        public FileController(DatabaseContext context, UserManager<User> userManager, IUserService userService, IMailService mailService)
+        public FileController(DatabaseContext context, UserManager<User> userManager, IUserService userService, IMailService mailService, IHubContext<SignalRHub> hubContext)
         {
             _context = context;
             _userManager = userManager;
             _userService = userService;
             _mailService = mailService;
+            _hubContext = hubContext;
 
             _fileTransfer = new FtpFileTransfer(new ClientConnexionInfo(_host, _username, _password));
 
@@ -92,7 +95,7 @@ namespace StudentsForStudentsAPI.Controllers
         [Authorize(Roles = "Member, Admin")]
         [HttpPost]
         [Produces("application/json")]
-        public IActionResult UploadFile(UploadFileViewModel request)
+        public async Task<IActionResult> UploadFile(UploadFileViewModel request)
         {
             if (!ModelState.IsValid)
             {
@@ -112,6 +115,8 @@ namespace StudentsForStudentsAPI.Controllers
                 UploadFileToRemoteServer(file, request.Content);
                 SaveFileEntryToDatabase(file);
 
+                await _hubContext.Clients.All.SendAsync("updateFilesCount");
+                await _hubContext.Clients.All.SendAsync("updateFilesMetaData");
                 _mailService.SendMail($"Ajout de votre synthèse \"{file.Name}\"", $"Bonjour {user.UserName}, \n\nVotre synthèse \"{file.Name}\" a été ajoutée avec succès. Cette dernière peut être consultée depuis la section \"Synthèses\" de l'application.\n\nCordialement,\nL'équipe de Students for Students.", user.Email, null);
             }
             catch (Exception e)
@@ -125,7 +130,7 @@ namespace StudentsForStudentsAPI.Controllers
 
         [HttpDelete]
         [Produces("application/json")]
-        public IActionResult DeleteFile(string filename)
+        public async Task<IActionResult> DeleteFile(string filename)
         {
             Models.File dbFile;
             User user;
@@ -139,7 +144,9 @@ namespace StudentsForStudentsAPI.Controllers
                 ThrowExceptionIfCurrentUserDontOwnFile(dbFile);
                 DeleteFileFromRemoteServer(dbFile);
                 RemoveFromDatabaseIfExists(dbFile);
-
+                
+                await _hubContext.Clients.All.SendAsync("updateFilesCount");
+                await _hubContext.Clients.All.SendAsync("updateFilesMetaData");
                 _mailService.SendMail($"Suppression de votre synthèse \"{dbFile.Name}\"", $"Bonjour {user.UserName}, \n\nVotre synthèse \"{dbFile.Name}\" a été supprimée avec succès.\n\nCordialement,\nL'équipe de Students for Students.", user.Email, null);
             }
             catch (Exception e)
