@@ -35,6 +35,53 @@ namespace StudentsForStudentsAPI.Controllers
             _hubContext = hubContext;
         }
 
+        [HttpDelete("{emailAddress}")]
+        [Authorize(Roles = "Admin")]
+        [Produces("application/json")]
+        public async Task<ActionResult<SuccessViewModel>> DeleteUser(string emailAddress)
+        {
+            if (!ModelState.IsValid) return BadRequest(new ErrorViewModel(true, "Adresse email invalide"));
+            if (!_userService.IsTokenValid()) return Unauthorized();
+
+            var user = await _userManager.FindByEmailAsync(emailAddress);
+            if (user == null) return NotFound(new ErrorViewModel(true, "Aucun utilisateur associé à cette adresse email"));
+
+            var requests = _context.Requests.Include(r => r.Sender).Include(r => r.Handler).Where(r => r.Sender.Id.Equals(user.Id) || (r.Status && r.Handler.Id.Equals(user.Id))).ToList();
+            var files = _context.Files.Include(f => f.Owner).Where(f => f.Owner.Id.Equals(user.Id)).ToList();
+            var forms = _context.Forms.Include(f => f.Sender).Where(f => f.SenderEmail.Equals(user.Email) || f.Sender.Id.Equals(user.Id)).ToList();
+
+            foreach (var request in requests) _context.Requests.Remove(request);
+            foreach (var file in files) _context.Files.Remove(file);
+            foreach (var form in forms) _context.Forms.Remove(form);
+
+            _context.SaveChanges();
+            await _userManager.DeleteAsync(user);
+            await _hubContext.Clients.All.SendAsync("updateUsersCount");
+            await _hubContext.Clients.All.SendAsync("updateUsers");
+            _mailService.SendMail("Suppression de votre compte", $"Bonjour {user.UserName}, \n\nVotre compte a été supprimé par un administrateur. \n\nCordialement, \nL'équipe de Students for Students", user.Email);
+
+            return Ok(new SuccessViewModel(false, "Utilisateur supprimé avec succès"));
+        }
+
+        [HttpPut("Status/{emailAddress}")]
+        [Authorize(Roles = "Admin")]
+        [Produces("application/json")]
+        public async Task<ActionResult<SuccessViewModel>> UpdateBannedStatus(string emailAddress)
+        {
+            if (!ModelState.IsValid) return BadRequest(new ErrorViewModel(true, "Adresse email invalide"));
+            if (!_userService.IsTokenValid()) return Unauthorized();
+
+            var user = await _userManager.FindByEmailAsync(emailAddress);
+            if (user == null) return NotFound(new ErrorViewModel(true, "Aucun utilisateur associé à cette adresse email"));
+
+            user.IsBanned = !user.IsBanned;
+            _context.SaveChanges();
+            await _hubContext.Clients.All.SendAsync("updateUsers");
+            _mailService.SendMail("Statut de votre compte", $"Bonjour {user.UserName}, \n\nVotre compte a été {(user.IsBanned ? "bloqué" : "débloqué")} par un administrateur. \n\nCordialement, \nL'équipe de Students for Students", user.Email);
+
+            return Ok(new SuccessViewModel(false, $"Utilisateur {(user.IsBanned ? "bloqué" : "débloqué")} avec succès"));
+        }
+
         [HttpPut("{calendarLink}")]
         [Authorize(Roles = "Member, Admin")]
         [Produces("application/json")]
@@ -48,6 +95,28 @@ namespace StudentsForStudentsAPI.Controllers
             user.CalendarLink = calendarLink;
             _context.SaveChanges();
             return Ok(new SuccessViewModel(false, "Lien du calendrier mis à jour avec succès"));
+        }
+
+        [HttpGet("List")]
+        [Authorize(Roles = "Admin")]
+        [Produces("application/json")]
+        public async Task<ActionResult<List<UserViewModel>>> GetUsers()
+        {
+            if (!_userService.IsTokenValid()) return Unauthorized();
+
+            var users = await _context.Users
+                .Include(u => u.Cursus)
+                .ToListAsync();
+
+            var userViewModels = new List<UserViewModel>();
+
+            foreach (var user in users)
+            {
+                var isAdmin = await _userManager.IsInRoleAsync(user, "Admin");
+                userViewModels.Add(new UserViewModel(user, isAdmin, "nothing to see here"));
+            }
+
+            return Ok(userViewModels);
         }
 
 
@@ -65,8 +134,12 @@ namespace StudentsForStudentsAPI.Controllers
             }
             
             var user = await _userManager.FindByIdAsync(id);
+            if (user.IsBanned) return BadRequest(new ErrorViewModel(true, "Votre compte a été bloqué par un administrateur"));
+
+            var isAdmin = await _userManager.IsInRoleAsync(user, "Admin");
             user.Cursus = _context.Users.Where(u => u.Id == user.Id).Include(u => u.Cursus).ThenInclude(c => c.Section).FirstOrDefault().Cursus;
-            return Ok(new UserViewModel(user, Token.CreateToken(user, _userManager, _config)));
+            
+            return Ok(new UserViewModel(user, isAdmin, Token.CreateToken(user, _userManager, _config)));
         }
 
         [AllowAnonymous]
@@ -86,13 +159,14 @@ namespace StudentsForStudentsAPI.Controllers
             {
                 var payload = GoogleJsonWebSignature.ValidateAsync(request.Credentials, new GoogleJsonWebSignature.ValidationSettings()).Result;
                 var user = _userManager.FindByEmailAsync(payload.Email).Result;
-                if (user == null)
-                {
-                    return NotFound(new ErrorViewModel(true, payload.Email));
-                }
+                
+                if (user == null) return NotFound(new ErrorViewModel(true, payload.Email));
+                if (user.IsBanned) return BadRequest(new ErrorViewModel(true, "Votre compte a été bloqué par un administrateur"));
+
+                var isAdmin = await _userManager.IsInRoleAsync(user, "Admin");
                 user.Cursus = _context.Users.Where(u => u.Id == user.Id).Include(u => u.Cursus).ThenInclude(c => c.Section).FirstOrDefault().Cursus;
 
-                return Ok(new UserViewModel(user, Token.CreateToken(user, _userManager, _config)));
+                return Ok(new UserViewModel(user, isAdmin, Token.CreateToken(user, _userManager, _config)));
             }
             catch (Exception)
             {
@@ -124,10 +198,13 @@ namespace StudentsForStudentsAPI.Controllers
                     return BadRequest(new ErrorViewModel(true, "Mot de passe invalide"));
                 }
             }
-            
+
+            if (user.IsBanned) return BadRequest(new ErrorViewModel(true, "Votre compte a été bloqué par un administrateur"));
+
+            var isAdmin = await _userManager.IsInRoleAsync(user, "Admin");
             user.Cursus = _context.Users.Where(u => u.Id == user.Id).Include(u => u.Cursus).ThenInclude(c => c.Section).FirstOrDefault().Cursus;
 
-            return Ok(new UserViewModel(user, Token.CreateToken(user, _userManager, _config)));
+            return Ok(new UserViewModel(user, isAdmin, Token.CreateToken(user, _userManager, _config)));
         }
 
         [AllowAnonymous]
@@ -158,6 +235,7 @@ namespace StudentsForStudentsAPI.Controllers
                 
                 _mailService.SendMail("Bienvenue sur Students for Students !", "Bonjour " + user.UserName + ",\n\nNous vous souhaitons la bienvenue sur notre application Students for Students !\n\nCordialement,\nL'équipe de Students for Students.", user.Email, null);
                 await _hubContext.Clients.All.SendAsync("updateUsersCount");
+                await _hubContext.Clients.All.SendAsync("updateUsers");
 
                 return Ok(new SuccessViewModel(false, "Compte créé avec succès"));
 

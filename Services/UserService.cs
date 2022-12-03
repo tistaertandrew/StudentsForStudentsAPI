@@ -20,5 +20,8 @@ namespace StudentsForStudentsAPI.Services
             var date = exp != null ? DateTimeOffset.FromUnixTimeSeconds(long.Parse(exp)).DateTime : DateTime.MinValue;
             return date > DateTime.Now;
         }
+
+        public bool IsUserAdmin()
+            => _httpContextAccessor?.HttpContext?.User?.IsInRole("Admin") ?? false;
     }
 }

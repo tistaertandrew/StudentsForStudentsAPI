@@ -7,6 +7,7 @@ namespace StudentsForStudentsAPI.Models
     {
         public Cursus Cursus { get; set; }
         public string? CalendarLink { get; set; } = null;
+        public bool IsBanned { get; set; } = false;
 
         public bool Equals(User? x, User? y)
         {

@@ -4,5 +4,6 @@
     {
         string? GetUserIdFromToken();
         bool IsTokenValid();
+        bool IsUserAdmin();
     }
 }
