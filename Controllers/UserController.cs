@@ -64,6 +64,29 @@ namespace StudentsForStudentsAPI.Controllers
             return Ok(new SuccessViewModel(false, "Utilisateur supprimé avec succès"));
         }
 
+        [HttpPut("{emailAddress}/Username/{username}")]
+        [Authorize(Roles = "Admin")]
+        [Produces("application/json")]
+        public async Task<ActionResult<SuccessViewModel>> EditUser(string emailAddress, string username)
+        {
+            {
+                if (!ModelState.IsValid) return BadRequest(new ErrorViewModel(true, "Adresse email ou nom d'utilisateur invalide"));
+                if (!_userService.IsTokenValid()) return Unauthorized();
+
+                var user = await _userManager.FindByEmailAsync(emailAddress);
+                if (user == null) return NotFound(new ErrorViewModel(true, "Aucun utilisateur associé à cette adresse email"));
+
+                user.UserName = username;
+                var result = await _userManager.UpdateAsync(user);
+                if(!result.Succeeded) return BadRequest(new ErrorViewModel(true, string.Join(" | ", result.Errors.Select(e => e.Code))));
+
+                await _hubContext.Clients.All.SendAsync("updateUsers", user.Email); 
+                _mailService.SendMail("Statut de votre compte", $"Bonjour {user.UserName}, \n\nVotre compte a été modifié par un administrateur. \n\nCordialement, \nL'équipe de Students for Students", user.Email);
+
+                return Ok(new SuccessViewModel(false, "Utilisateur modifié avec succès"));
+            }
+        }
+
         [HttpPut("Status/{emailAddress}")]
         [Authorize(Roles = "Admin")]
         [Produces("application/json")]
@@ -76,7 +99,7 @@ namespace StudentsForStudentsAPI.Controllers
             if (user == null) return NotFound(new ErrorViewModel(true, "Aucun utilisateur associé à cette adresse email"));
 
             user.IsBanned = !user.IsBanned;
-            _context.SaveChanges();
+            await _userManager.UpdateAsync(user);
             await _hubContext.Clients.All.SendAsync("updateUsers", user.Email);
             _mailService.SendMail("Statut de votre compte", $"Bonjour {user.UserName}, \n\nVotre compte a été {(user.IsBanned ? "bloqué" : "débloqué")} par un administrateur. \n\nCordialement, \nL'équipe de Students for Students", user.Email);
 
