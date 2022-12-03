@@ -58,6 +58,7 @@ namespace StudentsForStudentsAPI.Controllers
             await _userManager.DeleteAsync(user);
             await _hubContext.Clients.All.SendAsync("updateUsersCount");
             await _hubContext.Clients.All.SendAsync("updateUsers", user.Email);
+            await _hubContext.Clients.All.SendAsync("updateRequests");
             _mailService.SendMail("Suppression de votre compte", $"Bonjour {user.UserName}, \n\nVotre compte a été supprimé par un administrateur. \n\nCordialement, \nL'équipe de Students for Students", user.Email);
 
             return Ok(new SuccessViewModel(false, "Utilisateur supprimé avec succès"));
