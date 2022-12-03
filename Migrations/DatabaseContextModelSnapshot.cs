@@ -410,30 +410,6 @@ namespace StudentsForStudentsAPI.Migrations
                             Id = 1,
                             Label = "Développement d'applications",
                             SectionId = 1
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Label = "Cybersécurité",
-                            SectionId = 1
-                        },
-                        new
-                        {
-                            Id = 3,
-                            Label = "Marketing",
-                            SectionId = 2
-                        },
-                        new
-                        {
-                            Id = 4,
-                            Label = "Droit",
-                            SectionId = 2
-                        },
-                        new
-                        {
-                            Id = 5,
-                            Label = "Commerce Extérieur",
-                            SectionId = 2
                         });
                 });
 
@@ -607,11 +583,6 @@ namespace StudentsForStudentsAPI.Migrations
                         {
                             Id = 1,
                             Label = "Technique"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Label = "Economique"
                         });
                 });
 

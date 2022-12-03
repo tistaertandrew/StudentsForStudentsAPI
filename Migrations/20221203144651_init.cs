@@ -100,6 +100,7 @@ namespace StudentsForStudentsAPI.Migrations
                     Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     CursusId = table.Column<int>(type: "int", nullable: false),
                     CalendarLink = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    IsBanned = table.Column<bool>(type: "bit", nullable: false),
                     UserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     Email = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
@@ -336,21 +337,9 @@ namespace StudentsForStudentsAPI.Migrations
                 values: new object[] { 1, "Technique" });
 
             migrationBuilder.InsertData(
-                table: "Sections",
-                columns: new[] { "Id", "Label" },
-                values: new object[] { 2, "Economique" });
-
-            migrationBuilder.InsertData(
                 table: "Cursus",
                 columns: new[] { "Id", "Label", "SectionId" },
-                values: new object[,]
-                {
-                    { 1, "Développement d'applications", 1 },
-                    { 2, "Cybersécurité", 1 },
-                    { 3, "Marketing", 2 },
-                    { 4, "Droit", 2 },
-                    { 5, "Commerce Extérieur", 2 }
-                });
+                values: new object[] { 1, "Développement d'applications", 1 });
 
             migrationBuilder.InsertData(
                 table: "Courses",
