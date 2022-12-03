@@ -57,7 +57,7 @@ namespace StudentsForStudentsAPI.Controllers
             _context.SaveChanges();
             await _userManager.DeleteAsync(user);
             await _hubContext.Clients.All.SendAsync("updateUsersCount");
-            await _hubContext.Clients.All.SendAsync("updateUsers");
+            await _hubContext.Clients.All.SendAsync("updateUsers", user.Email);
             _mailService.SendMail("Suppression de votre compte", $"Bonjour {user.UserName}, \n\nVotre compte a été supprimé par un administrateur. \n\nCordialement, \nL'équipe de Students for Students", user.Email);
 
             return Ok(new SuccessViewModel(false, "Utilisateur supprimé avec succès"));
@@ -76,7 +76,7 @@ namespace StudentsForStudentsAPI.Controllers
 
             user.IsBanned = !user.IsBanned;
             _context.SaveChanges();
-            await _hubContext.Clients.All.SendAsync("updateUsers");
+            await _hubContext.Clients.All.SendAsync("updateUsers", user.Email);
             _mailService.SendMail("Statut de votre compte", $"Bonjour {user.UserName}, \n\nVotre compte a été {(user.IsBanned ? "bloqué" : "débloqué")} par un administrateur. \n\nCordialement, \nL'équipe de Students for Students", user.Email);
 
             return Ok(new SuccessViewModel(false, $"Utilisateur {(user.IsBanned ? "bloqué" : "débloqué")} avec succès"));
