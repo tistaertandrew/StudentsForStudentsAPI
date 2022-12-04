@@ -102,7 +102,7 @@ namespace StudentsForStudentsAPI.Controllers
                     .ThenInclude(c => c.Cursus)
                     .ThenInclude(c => c.Section)
                     .Include(r => r.Sender)
-                    .Where(r => r.Sender.Id != _userService.GetUserIdFromToken() && !r.Status)
+                    .Where(r => !r.Sender.Id.Equals(_userService.GetUserIdFromToken()) && !r.Status)
                     .OrderBy(r => r.Date)
                     .ToList();
 
@@ -129,7 +129,7 @@ namespace StudentsForStudentsAPI.Controllers
                     .ThenInclude(c => c.Section)
                     .Include(r => r.Sender)
                     .Include(r => r.Handler)
-                    .Where(r => r.Sender.Id == _userService.GetUserIdFromToken() || r.Handler.Id == _userService.GetUserIdFromToken() || r.Handler.Id == _userService.GetUserIdFromToken())
+                    .Where(r => r.Sender.Id.Equals(_userService.GetUserIdFromToken()) || r.Handler.Id.Equals(_userService.GetUserIdFromToken()))
                     .OrderBy(r => r.Date)
                     .ToList();
 
