@@ -45,6 +45,7 @@ namespace StudentsForStudentsAPI.Controllers
 
             var user = await _userManager.FindByEmailAsync(emailAddress);
             if (user == null) return NotFound(new ErrorViewModel(true, "Aucun utilisateur associé à cette adresse email"));
+            if (_userManager.IsInRoleAsync(user, "Admin").Result) return BadRequest(new ErrorViewModel(true, "Impossible de supprimer un administrateur"));
 
             var requests = _context.Requests.Include(r => r.Sender).Include(r => r.Handler).Where(r => r.Sender.Id.Equals(user.Id) || (r.Status && r.Handler.Id.Equals(user.Id))).ToList();
             var files = _context.Files.Include(f => f.Owner).Where(f => f.Owner.Id.Equals(user.Id)).ToList();
@@ -59,7 +60,7 @@ namespace StudentsForStudentsAPI.Controllers
             await _hubContext.Clients.All.SendAsync("updateUsersCount");
             await _hubContext.Clients.All.SendAsync("updateUsers", user.Email);
             await _hubContext.Clients.All.SendAsync("updateRequests");
-            _mailService.SendMail("Suppression de votre compte", $"Bonjour {user.UserName}, \n\nVotre compte a été supprimé par un administrateur. \n\nCordialement, \nL'équipe de Students for Students", user.Email);
+            _mailService.SendMail("Suppression de votre compte", $"Bonjour {user.UserName}, \n\nVotre compte a été supprimé par un administrateur. \n\nCordialement, \nL'équipe de Students for Students.", user.Email);
 
             return Ok(new SuccessViewModel(false, "Utilisateur supprimé avec succès"));
         }
@@ -81,7 +82,7 @@ namespace StudentsForStudentsAPI.Controllers
                 if(!result.Succeeded) return BadRequest(new ErrorViewModel(true, string.Join(" | ", result.Errors.Select(e => e.Code))));
 
                 await _hubContext.Clients.All.SendAsync("updateUsers", user.Email); 
-                _mailService.SendMail("Statut de votre compte", $"Bonjour {user.UserName}, \n\nVotre compte a été modifié par un administrateur. \n\nCordialement, \nL'équipe de Students for Students", user.Email);
+                _mailService.SendMail("Statut de votre compte", $"Bonjour {user.UserName}, \n\nVotre compte a été modifié par un administrateur. \n\nCordialement, \nL'équipe de Students for Students.", user.Email);
 
                 return Ok(new SuccessViewModel(false, "Utilisateur modifié avec succès"));
             }
@@ -97,11 +98,12 @@ namespace StudentsForStudentsAPI.Controllers
 
             var user = await _userManager.FindByEmailAsync(emailAddress);
             if (user == null) return NotFound(new ErrorViewModel(true, "Aucun utilisateur associé à cette adresse email"));
+            if (_userManager.IsInRoleAsync(user, "Admin").Result) return BadRequest(new ErrorViewModel(true, "Impossible de bloquer un administrateur"));
 
             user.IsBanned = !user.IsBanned;
             await _userManager.UpdateAsync(user);
             await _hubContext.Clients.All.SendAsync("updateUsers", user.Email);
-            _mailService.SendMail("Statut de votre compte", $"Bonjour {user.UserName}, \n\nVotre compte a été {(user.IsBanned ? "bloqué" : "débloqué")} par un administrateur. \n\nCordialement, \nL'équipe de Students for Students", user.Email);
+            _mailService.SendMail("Statut de votre compte", $"Bonjour {user.UserName}, \n\nVotre compte a été {(user.IsBanned ? "bloqué" : "débloqué")} par un administrateur. \n\nCordialement, \nL'équipe de Students for Students.", user.Email);
 
             return Ok(new SuccessViewModel(false, $"Utilisateur {(user.IsBanned ? "bloqué" : "débloqué")} avec succès"));
         }
