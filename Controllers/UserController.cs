@@ -66,10 +66,10 @@ namespace StudentsForStudentsAPI.Controllers
             return Ok(new SuccessViewModel(false, "Utilisateur supprimé avec succès"));
         }
 
-        [HttpPut("{emailAddress}/Username/{username}")]
+        [HttpPut("{emailAddress}/Username")]
         [Authorize(Roles = "Admin")]
         [Produces("application/json")]
-        public async Task<ActionResult<SuccessViewModel>> EditUser(string emailAddress, string username)
+        public async Task<ActionResult<SuccessViewModel>> EditUser(string emailAddress, [FromBody] UsernameViewModel usernameViewModel)
         {
             {
                 if (!ModelState.IsValid) return BadRequest(new ErrorViewModel(true, "Adresse email ou nom d'utilisateur invalide"));
@@ -78,7 +78,7 @@ namespace StudentsForStudentsAPI.Controllers
                 var user = await _userManager.FindByEmailAsync(emailAddress);
                 if (user == null) return NotFound(new ErrorViewModel(true, "Aucun utilisateur associé à cette adresse email"));
 
-                user.UserName = username;
+                user.UserName = usernameViewModel.Username;
                 var result = await _userManager.UpdateAsync(user);
                 if(!result.Succeeded) return BadRequest(new ErrorViewModel(true, string.Join(" | ", result.Errors.Select(e => e.Code))));
 
