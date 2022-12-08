@@ -91,7 +91,7 @@ namespace StudentsForStudentsAPI.Controllers
             }
         }
 
-        [HttpPut("Status/{emailAddress}")]
+        [HttpPut("{emailAddress}/Status")]
         [Authorize(Roles = "Admin")]
         [Produces("application/json")]
         public async Task<ActionResult<SuccessViewModel>> UpdateBannedStatus(string emailAddress)

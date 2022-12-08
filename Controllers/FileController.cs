@@ -66,6 +66,7 @@ namespace StudentsForStudentsAPI.Controllers
             return Ok(_context.Files.Count());
         }
 
+        [Authorize(Roles = "Member, Admin")]
         [HttpGet("{filename}")]
         [Produces("application/json")]
         public IActionResult DownloadFile(string filename)
@@ -130,7 +131,8 @@ namespace StudentsForStudentsAPI.Controllers
             return Ok(new FileResponseViewModel<string>(isError: isError, errors));
         }
 
-        [HttpDelete]
+        [Authorize(Roles = "Member, Admin")]
+        [HttpDelete("{filename}")]
         [Produces("application/json")]
         public async Task<IActionResult> DeleteFile(string filename)
         {
@@ -163,6 +165,7 @@ namespace StudentsForStudentsAPI.Controllers
         }
 
 
+        [Authorize(Roles = "Member, Admin")]
         [HttpGet]
         [Produces("application/json")]
         public IActionResult GetFilesMetadata()
