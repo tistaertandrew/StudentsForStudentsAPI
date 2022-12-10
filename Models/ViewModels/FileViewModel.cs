@@ -8,5 +8,6 @@
         public DateTime CreationDate { get; set; } = DateTime.Now;
         public string OwnerId { get; set; }
         public int FileId { get; set; }
+        public string Extension { get; set; } = string.Empty;
     }
 }

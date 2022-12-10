@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
@@ -103,7 +102,13 @@ namespace StudentsForStudentsAPI.Controllers
             }
 
             var errors = new List<string>();
-            var file = new Models.File { Course = _context.Courses.Include(c => c.Cursus).ThenInclude(c => c.Section).Where(c => c.Id == request.CourseId).First(), Name = request.Filename, Extension = request.Extension, CreationDate = DateTime.Now };
+            var file = new Models.File 
+            {
+                Course = _context.Courses.Include(c => c.Cursus).ThenInclude(c => c.Section).Where(c => c.Id == request.CourseId).First(), 
+                Name = request.Filename, 
+                Extension = request.Extension, 
+                CreationDate = DateTime.Now 
+            };
             User user;
             bool isError = false;
 
@@ -178,7 +183,8 @@ namespace StudentsForStudentsAPI.Controllers
                     Course = file.Course,
                     CreationDate = file.CreationDate,
                     OwnerId = file?.Owner.Id,
-                    OwnerName =  file.Owner?.UserName
+                    OwnerName =  file.Owner?.UserName,
+                    Extension= file.Extension,
                 });
 
                 return Ok(new FileResponseViewModel<IEnumerable<FileViewModel>>(content: mapped, isError: isError, errors));
@@ -196,7 +202,7 @@ namespace StudentsForStudentsAPI.Controllers
         {
             try
             {
-                if (IsFileEntryExistsInDatabase(file))
+                if (IsFileNameExistsInDatabase(file))
                 {
                     throw new Exception("File name already taken");
                 }
@@ -209,15 +215,14 @@ namespace StudentsForStudentsAPI.Controllers
 
         private void RemoveFromDatabaseIfExists(Models.File file)
         {
-            if (IsFileEntryExistsInDatabase(file))
+            if (IsFileNameExistsInDatabase(file))
             {
-                
                 _context.Files.Remove(file);
                 _context.SaveChanges();
             }
         }
 
-        private bool IsFileEntryExistsInDatabase(Models.File file)
+        private bool IsFileNameExistsInDatabase(Models.File file)
         {
             return _context.Files.Any(current => current.Name.Equals(file.Name));
         }
