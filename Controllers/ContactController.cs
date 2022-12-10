@@ -46,12 +46,15 @@ namespace StudentsForStudentsAPI.Controllers
             form.Message = request.Message;
             form.Status = false;
 
-            _mailService.SendMail(form.Subject, form.Message, null, request.Email);
-            _mailService.SendMail("Prise de contact avec un administrateur", "Bonjour, \n\nVotre prise de contact a bien été prise en compte. Nous vous répondrons dans les plus brefs délais.\n\nCordialement,\nL'équipe de Students for Students.", request.Email, null);
+
+            _mailService.SendMail(form.Subject, new string[] { form.Message }, "ContactToAdmin", null, request.Email);
+            _mailService.SendMail("Prise de contact avec un administrateur", new string[] { }, "ContactToUser", request.Email);
+            //_mailService.SendMail(form.Subject, form.Message, null, request.Email);
+            //_mailService.SendMail("Prise de contact avec un administrateur", "Bonjour, \n\nVotre prise de contact a bien été prise en compte. Nous vous répondrons dans les plus brefs délais.\n\nCordialement,\nL'équipe de Students for Students.", request.Email, null);
 
             _context.Forms.Add(form);
             _context.SaveChanges();
-            return Ok(new SuccessViewModel(false, "Formulaire envoyé"));
+            return Ok(new SuccessViewModel(false, "Mail envoyé"));
         }
     }
 }

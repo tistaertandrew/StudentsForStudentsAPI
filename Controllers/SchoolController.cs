@@ -20,7 +20,7 @@ namespace StudentsForStudentsAPI.Controllers
         }
 
         [AllowAnonymous]
-        [HttpGet("Sections/{id}")]
+        [HttpGet("Section/{id}")]
         [Produces("application/json")]
         public ActionResult<Section> GetSection(int id)
         {
@@ -29,7 +29,7 @@ namespace StudentsForStudentsAPI.Controllers
         }
 
         [AllowAnonymous]
-        [HttpGet("Sections")]
+        [HttpGet("Section")]
         [Produces("application/json")]
         public ActionResult<List<Section>> GetSections()
         {
@@ -56,7 +56,7 @@ namespace StudentsForStudentsAPI.Controllers
         }
 
         [AllowAnonymous]
-        [HttpGet("Courses/{id}")]
+        [HttpGet("Course/{id}")]
         [Produces("application/json")]
         public ActionResult<Course> GetCourse(int id)
         {
@@ -69,7 +69,7 @@ namespace StudentsForStudentsAPI.Controllers
         }
 
         [AllowAnonymous]
-        [HttpGet("Courses")]
+        [HttpGet("Course")]
         [Produces("application/json")]
         public ActionResult<List<Course>> GetCourses()
         {

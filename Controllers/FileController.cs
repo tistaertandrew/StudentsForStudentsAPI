@@ -65,6 +65,7 @@ namespace StudentsForStudentsAPI.Controllers
             return Ok(_context.Files.Count());
         }
 
+        [Authorize(Roles = "Member, Admin")]
         [HttpGet("{filename}")]
         [Produces("application/json")]
         public IActionResult DownloadFile(string filename)
@@ -122,7 +123,9 @@ namespace StudentsForStudentsAPI.Controllers
 
                 await _hubContext.Clients.All.SendAsync("updateFilesCount");
                 await _hubContext.Clients.All.SendAsync("updateFilesMetaData");
-                _mailService.SendMail($"Ajout de votre synthèse \"{file.Name}\"", $"Bonjour {user.UserName}, \n\nVotre synthèse \"{file.Name}\" a été ajoutée avec succès. Cette dernière peut être consultée depuis la section \"Synthèses\" de l'application.\n\nCordialement,\nL'équipe de Students for Students.", user.Email, null);
+
+                _mailService.SendMail($"Ajout de votre synthèse \"{file.Name}\"", new string[] { user.UserName, file.Name }, "AddSynthese", user.Email);
+                //_mailService.SendMail($"Ajout de votre synthèse \"{file.Name}\"", $"Bonjour {user.UserName}, \n\nVotre synthèse \"{file.Name}\" a été ajoutée avec succès. Cette dernière peut être consultée depuis la section \"Synthèses\" de l'application.\n\nCordialement,\nL'équipe de Students for Students.", user.Email, null);
             }
             catch (Exception e)
             {
@@ -133,7 +136,8 @@ namespace StudentsForStudentsAPI.Controllers
             return Ok(new FileResponseViewModel<string>(isError: isError, errors));
         }
 
-        [HttpDelete]
+        [Authorize(Roles = "Member, Admin")]
+        [HttpDelete("{filename}")]
         [Produces("application/json")]
         public async Task<IActionResult> DeleteFile(string filename)
         {
@@ -152,7 +156,9 @@ namespace StudentsForStudentsAPI.Controllers
                 
                 await _hubContext.Clients.All.SendAsync("updateFilesCount");
                 await _hubContext.Clients.All.SendAsync("updateFilesMetaData");
-                _mailService.SendMail($"Suppression de votre synthèse \"{dbFile.Name}\"", $"Bonjour {user.UserName}, \n\nVotre synthèse \"{dbFile.Name}\" a été supprimée avec succès.\n\nCordialement,\nL'équipe de Students for Students.", user.Email, null);
+
+                _mailService.SendMail($"Suppression de votre synthèse \"{dbFile.Name}\"", new string[] { user.UserName, dbFile.Name }, "DeleteSynthese", user.Email);
+                //_mailService.SendMail($"Suppression de votre synthèse \"{dbFile.Name}\"", $"Bonjour {user.UserName}, \n\nVotre synthèse \"{dbFile.Name}\" a été supprimée avec succès.\n\nCordialement,\nL'équipe de Students for Students.", user.Email, null);
             }
             catch (Exception e)
             {
@@ -164,6 +170,7 @@ namespace StudentsForStudentsAPI.Controllers
         }
 
 
+        [Authorize(Roles = "Member, Admin")]
         [HttpGet]
         [Produces("application/json")]
         public IActionResult GetFilesMetadata()
