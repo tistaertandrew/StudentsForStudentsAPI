@@ -103,12 +103,12 @@ namespace StudentsForStudentsAPI.Controllers
             }
 
             var errors = new List<string>();
-            var file = new Models.File 
+            var file = new Models.File
             {
-                Course = _context.Courses.Include(c => c.Cursus).ThenInclude(c => c.Section).Where(c => c.Id == request.CourseId).First(), 
-                Name = request.Filename, 
-                Extension = request.Extension, 
-                CreationDate = DateTime.Now 
+                Course = _context.Courses.Include(c => c.Cursus).ThenInclude(c => c.Section).Where(c => c.Id == request.CourseId).First(),
+                Name = request.Filename,
+                Extension = request.Extension,
+                CreationDate = DateTime.Now
             };
             User user;
             bool isError = false;
@@ -153,7 +153,7 @@ namespace StudentsForStudentsAPI.Controllers
                 ThrowExceptionIfCurrentUserDontOwnFile(dbFile);
                 DeleteFileFromRemoteServer(dbFile);
                 RemoveFromDatabaseIfExists(dbFile);
-                
+
                 await _hubContext.Clients.All.SendAsync("updateFilesCount");
                 await _hubContext.Clients.All.SendAsync("updateFilesMetaData");
 
@@ -190,8 +190,8 @@ namespace StudentsForStudentsAPI.Controllers
                     Course = file.Course,
                     CreationDate = file.CreationDate,
                     OwnerId = file?.Owner.Id,
-                    OwnerName =  file.Owner?.UserName,
-                    Extension= file.Extension,
+                    OwnerName = file.Owner?.UserName,
+                    Extension = file.Extension,
                 });
 
                 return Ok(new FileResponseViewModel<IEnumerable<FileViewModel>>(content: mapped, isError: isError, errors));
@@ -349,8 +349,8 @@ namespace StudentsForStudentsAPI.Controllers
         {
             try
             {
-                var stream = _fileTransfer.DownloadFile(GetPathToFileInRemoteServer(file));
-                return stream.ReadToEnd();
+                var content = _fileTransfer.DownloadFile(GetPathToFileInRemoteServer(file));
+                return content;
             }
             catch (Exception e)
             {

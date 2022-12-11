@@ -1,14 +1,13 @@
 ﻿using Renci.SshNet;
 using Renci.SshNet.Common;
 using Renci.SshNet.Sftp;
+using System.Text;
 
 namespace StudentsForStudentsAPI.Services.FileTransfer
 {
     public class FtpFileTransfer : IDisposable
     {
         private readonly SftpClient _client;
-        private readonly string _localWorkingDirectoryPath = "C:\\StudentForStudentFolder";
-        private readonly string _localWorkingFileName = Guid.NewGuid().ToString();
         private bool _connected = false;
 
         /// <summary>
@@ -23,8 +22,6 @@ namespace StudentsForStudentsAPI.Services.FileTransfer
         /// <exception cref="Exception">An exception could be thrown on connexion failure</exception>
         public FtpFileTransfer(ClientConnexionInfo connexionInfo)
         {
-            Directory.CreateDirectory(_localWorkingDirectoryPath);
-
             var sshNetConnexionInfo = new Renci.SshNet.ConnectionInfo
                 (connexionInfo.host,
                 connexionInfo.username,
@@ -42,11 +39,10 @@ namespace StudentsForStudentsAPI.Services.FileTransfer
         /// </summary>
         /// <param name="filePath">the full path of file to download from remote server</param>
         /// <returns>StreamReader of the downloaded file</returns>
-        public StreamReader DownloadFile(string filePath)
+        public string DownloadFile(string filePath)
         {
             TryToConnect();
-            var path = ReadFromRemote(filePath);
-            return new StreamReader(path);
+            return ReadFromRemote(filePath);
         }
 
         /// <summary>
@@ -63,8 +59,7 @@ namespace StudentsForStudentsAPI.Services.FileTransfer
 
             CreateRemoteDirectoryRecursively(directory);
 
-            var path = Write(content);
-            using var stream = new FileStream(path, FileMode.Open);
+            MemoryStream stream = WriteToMemoryStream(content);
             _client.UploadFile(stream, remoteFilePath);
         }
 
@@ -131,39 +126,41 @@ namespace StudentsForStudentsAPI.Services.FileTransfer
         }
 
         /// <summary>
-        /// Read a file at given path from the remote server. The read file will be written in a file.
+        /// Read a file at given path from the remote server. The read file content be returned.
         /// </summary>
-        /// <param name="filePath">the path of the file at remote server</param>
-        /// <returns>The path of a file that contains the content of read remote file</returns>
-        private string ReadFromRemote(string filePath)
+        /// <param name="remoteFilePath">the path of the file at remote server</param>
+        /// <returns>The content the read file</returns>
+        private string ReadFromRemote(string remoteFilePath)
         {
-            string path = GetWorkingFile();
-            using var outputFile = File.Create(path);
-            using var streamOfRemoteFile = _client.OpenRead(filePath);
-            streamOfRemoteFile.CopyTo(outputFile, 1024);
-            return path;
+            var memoryStream = ReadFromRemoteAsMemoryStream(remoteFilePath);
+            using var content = new StreamReader(memoryStream);
+            return content.ReadToEnd();
         }
 
         /// <summary>
-        /// Writes the given content to a file and returns the path
+        /// Read a file at given path from the remote server. The read file content be returned as a MemoryStream.
+        /// </summary>
+        /// <param name="remoteFilePath">the path of the file at remote server</param>
+        /// <returns>The content the read file as a MemoryStream</returns>
+        private MemoryStream ReadFromRemoteAsMemoryStream(string remoteFilePath)
+        {
+            SftpFileStream streamOfRemoteFile = _client.OpenRead(remoteFilePath);
+            var memoryStream = new MemoryStream();
+            streamOfRemoteFile.CopyTo(memoryStream);
+            memoryStream.Seek(0, SeekOrigin.Begin);
+            return memoryStream;
+        }
+
+        /// <summary>
+        /// Writes the given content to a memory stream and returns it
         /// </summary>
         /// <param name="content">The content to write</param>
         /// <returns></returns>
-        private string Write(string content)
+        private MemoryStream WriteToMemoryStream(string content)
         {
-            var path = GetWorkingFile(prefix: "upload - ");
-            using var output = File.Create(path);
-            using var writer = new StreamWriter(output);
-            writer.Write(content);
-            return path;
+            var bytesArray = Encoding.ASCII.GetBytes(content);
+            return new MemoryStream(bytesArray);
         }
-
-        /// <summary>
-        /// Demand the working file of this instance
-        /// </summary>
-        /// <param name="prefix"></param>
-        /// <returns></returns>
-        private string GetWorkingFile(string prefix = "") => Path.Combine(_localWorkingDirectoryPath, prefix + _localWorkingFileName);
 
         /// <summary>
         /// Create a remote directory recursively
@@ -201,7 +198,6 @@ namespace StudentsForStudentsAPI.Services.FileTransfer
                 {
                     SftpFileAttributes attrs = _client.GetAttributes(currentDirectoryPath);
 
-                    // In case there is a file with the same name, create a directory
                     if (!attrs.IsDirectory)
                     {
                         throw new Exception("Can't create directory, current is a file");
@@ -238,12 +234,6 @@ namespace StudentsForStudentsAPI.Services.FileTransfer
             {
                 if (_client.IsConnected) try { _client.Disconnect(); } catch (ObjectDisposedException) { }
                 _client.Dispose();
-
-                foreach (var file in new DirectoryInfo(_localWorkingDirectoryPath).GetFiles())
-                {
-                    try { file.Delete(); }
-                    catch (Exception e) { System.Diagnostics.Debug.WriteLine($"Could not delete working file at : '{file.FullName}' beacause of {e.Message}"); }
-                }
             }
         }
     }
