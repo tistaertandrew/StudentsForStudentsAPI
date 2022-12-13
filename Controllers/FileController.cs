@@ -23,38 +23,24 @@ namespace StudentsForStudentsAPI.Controllers
         private readonly IUserService _userService;
         private readonly IMailService _mailService;
         private readonly IHubContext<SignalRHub> _hubContext;
-
+        private readonly IConfiguration _config;
         private readonly FtpFileTransfer _fileTransfer;
-
-        // TODO  Move this into env file
-        private readonly string _username = "d180106";
-        const string _host = "192.168.128.13";
-        const string _password = "cgfqdH2N";
-
-        private readonly string _rootRemoteDirectory = "/home";
-        private readonly string _filesRemoteDirectory = "public_html/StudentsForStudentsAPI/Files";
 
         private readonly string _home;
         private readonly string _remoteWorkingDirectory;
 
-        /// <summary>
-        /// Regex to remove files like (. or ..) from list of files
-        /// </summary>
-        private readonly Regex _regexToRemoveRootFilesFromFileList;
-
-        public FileController(DatabaseContext context, UserManager<User> userManager, IUserService userService, IMailService mailService, IHubContext<SignalRHub> hubContext)
+        public FileController(DatabaseContext context, UserManager<User> userManager, IUserService userService, IMailService mailService, IHubContext<SignalRHub> hubContext, IConfiguration config = null)
         {
             _context = context;
             _userManager = userManager;
             _userService = userService;
             _mailService = mailService;
             _hubContext = hubContext;
+            _config = config;
+            _fileTransfer = new FtpFileTransfer(new ClientConnectionInfo(_config.GetSection("RemoteFileServerSettings:Host").Value, _config.GetSection("RemoteFileServerSettings:UserName").Value, _config.GetSection("RemoteFileServerSettings:UserPassword").Value));
 
-            _fileTransfer = new FtpFileTransfer(new ClientConnexionInfo(_host, _username, _password));
-
-            _home = $"{_rootRemoteDirectory}/{_username}";
-            _remoteWorkingDirectory = $"{_home}/{_filesRemoteDirectory}";
-            _regexToRemoveRootFilesFromFileList = new Regex(@"^(\.+)$");
+            _home = $"{_config.GetSection("RemoteFileServerSettings:RootRemoteDirectory").Value}/{_config.GetSection("RemoteFileServerSettings:UserName").Value}";
+            _remoteWorkingDirectory = $"{_home}/{_config.GetSection("RemoteFileServerSettings:FilesRemoteDirectory").Value}";
         }
 
         [AllowAnonymous]

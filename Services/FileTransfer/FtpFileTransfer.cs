@@ -20,7 +20,7 @@ namespace StudentsForStudentsAPI.Services.FileTransfer
         /// </summary>
         /// <param name="connexionInfo"></param>
         /// <exception cref="Exception">An exception could be thrown on connexion failure</exception>
-        public FtpFileTransfer(ClientConnexionInfo connexionInfo)
+        public FtpFileTransfer(ClientConnectionInfo connexionInfo)
         {
             var sshNetConnexionInfo = new Renci.SshNet.ConnectionInfo
                 (connexionInfo.host,
