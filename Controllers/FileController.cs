@@ -10,6 +10,7 @@ using StudentsForStudentsAPI.Services;
 using StudentsForStudentsAPI.Services.FileTransfer;
 using StudentsForStudentsAPI.Services.MailService;
 using System.Text.RegularExpressions;
+using StudentsForStudentsAPI.Models.Mails;
 
 namespace StudentsForStudentsAPI.Controllers
 {
@@ -110,8 +111,7 @@ namespace StudentsForStudentsAPI.Controllers
                 await _hubContext.Clients.All.SendAsync("updateFilesCount");
                 await _hubContext.Clients.All.SendAsync("updateFilesMetaData");
 
-                _mailService.SendMail($"Ajout de votre synthèse \"{file.Name}\"", new string[] { user.UserName, file.Name }, "AddSynthese", user.Email);
-                //_mailService.SendMail($"Ajout de votre synthèse \"{file.Name}\"", $"Bonjour {user.UserName}, \n\nVotre synthèse \"{file.Name}\" a été ajoutée avec succès. Cette dernière peut être consultée depuis la section \"Synthèses\" de l'application.\n\nCordialement,\nL'équipe de Students for Students.", user.Email, null);
+                _mailService.SendMail(new AddSyntheseMail($"Ajout de votre synthèse \"{file.Name}\"", user.Email, null, new []{ user.UserName, file.Name }));
             }
             catch (Exception e)
             {
@@ -143,8 +143,7 @@ namespace StudentsForStudentsAPI.Controllers
                 await _hubContext.Clients.All.SendAsync("updateFilesCount");
                 await _hubContext.Clients.All.SendAsync("updateFilesMetaData");
 
-                _mailService.SendMail($"Suppression de votre synthèse \"{dbFile.Name}\"", new string[] { user.UserName, dbFile.Name }, "DeleteSynthese", user.Email);
-                //_mailService.SendMail($"Suppression de votre synthèse \"{dbFile.Name}\"", $"Bonjour {user.UserName}, \n\nVotre synthèse \"{dbFile.Name}\" a été supprimée avec succès.\n\nCordialement,\nL'équipe de Students for Students.", user.Email, null);
+                _mailService.SendMail(new DeleteSyntheseMail($"Suppression de votre synthèse \"{dbFile.Name}\"", user.Email, null, new []{ user.UserName, dbFile.Name }));
             }
             catch (Exception e)
             {

@@ -1,7 +1,9 @@
-﻿namespace StudentsForStudentsAPI.Services.MailService
+﻿using StudentsForStudentsAPI.Models.Mails;
+
+namespace StudentsForStudentsAPI.Services.MailService
 {
     public interface IMailService
     {
-        void SendMail(string subject, string[] values, string type, string? to = null, string? from = null);
+        void SendMail(DefaultMail defaultMail);
     }
 }

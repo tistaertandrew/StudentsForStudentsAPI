@@ -10,6 +10,7 @@ using StudentsForStudentsAPI.Models.ViewModels;
 using StudentsForStudentsAPI.Services;
 using StudentsForStudentsAPI.Services.MailService;
 using System.Security.Claims;
+using StudentsForStudentsAPI.Models.Mails;
 
 namespace StudentsForStudentsAPI.Controllers
 {
@@ -60,8 +61,8 @@ namespace StudentsForStudentsAPI.Controllers
             await _hubContext.Clients.All.SendAsync("updateUsersCount");
             await _hubContext.Clients.All.SendAsync("updateUsers", user.Email);
             await _hubContext.Clients.All.SendAsync("updateRequests");
-            _mailService.SendMail("Suppression de votre compte", new string[] { user.UserName }, "DeleteAccount", user.Email);
-            //_mailService.SendMail("Suppression de votre compte", $"Bonjour {user.UserName}, \n\nVotre compte a été supprimé par un administrateur. \n\nCordialement, \nL'équipe de Students for Students.", user.Email);
+            
+            _mailService.SendMail(new DeleteAccountMail("Suppression de votre compte", user.Email, null, new []{ user.UserName }));
 
             return Ok(new SuccessViewModel(false, "Utilisateur supprimé avec succès"));
         }
@@ -84,8 +85,7 @@ namespace StudentsForStudentsAPI.Controllers
 
                 await _hubContext.Clients.All.SendAsync("updateUsers", user.Email);
 
-                _mailService.SendMail("Statut de votre compte", new string[] { user.UserName }, "EditAccount", user.Email);
-                //_mailService.SendMail("Statut de votre compte", $"Bonjour {user.UserName}, \n\nVotre compte a été modifié par un administrateur. \n\nCordialement, \nL'équipe de Students for Students.", user.Email);
+                _mailService.SendMail(new EditAccountMail("Compte modifié", user.Email, null, new []{ user.UserName }));
 
                 return Ok(new SuccessViewModel(false, "Utilisateur modifié avec succès"));
             }
@@ -106,8 +106,7 @@ namespace StudentsForStudentsAPI.Controllers
             user.IsBanned = !user.IsBanned;
             await _userManager.UpdateAsync(user);
             await _hubContext.Clients.All.SendAsync("updateUsers", user.Email);
-            _mailService.SendMail("Statut de votre compte", new string[] { user.UserName, user.IsBanned ? "true" : "false" }, "UpdateAccount", user.Email);
-            //_mailService.SendMail("Statut de votre compte", $"Bonjour {user.UserName}, \n\nVotre compte a été {(user.IsBanned ? "bloqué" : "débloqué")} par un administrateur. \n\nCordialement, \nL'équipe de Students for Students.", user.Email);
+            _mailService.SendMail(new UpdateAccountMail("Statut de votre compte", user.Email, null, new []{ user.UserName, user.IsBanned ? "true" : "false" }));
 
             return Ok(new SuccessViewModel(false, $"Utilisateur {(user.IsBanned ? "bloqué" : "débloqué")} avec succès"));
         }
@@ -264,8 +263,7 @@ namespace StudentsForStudentsAPI.Controllers
                 user.Cursus = _context.Users.Where(u => u.Id == user.Id).Include(u => u.Cursus).ThenInclude(c => c.Section).FirstOrDefault().Cursus;
 
 
-                _mailService.SendMail("Bienvue sur Students for Students !", new string[] { user.UserName }, "AddAccount", user.Email);
-                //_mailService.SendMail("Bienvenue sur Students for Students !", "Bonjour " + user.UserName + ",\n\nNous vous souhaitons la bienvenue sur notre application Students for Students !\n\nCordialement,\nL'équipe de Students for Students.", user.Email, null);
+                _mailService.SendMail(new AddAccountMail("Bienvenue sur Students for Students !", user.Email, null, new []{ user.UserName }));
                 await _hubContext.Clients.All.SendAsync("updateUsersCount");
                 await _hubContext.Clients.All.SendAsync("updateUsers");
 

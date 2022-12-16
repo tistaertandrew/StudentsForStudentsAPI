@@ -10,6 +10,7 @@ using StudentsForStudentsAPI.Models.ViewModels;
 using StudentsForStudentsAPI.Services;
 using StudentsForStudentsAPI.Services.MailService;
 using System.Net;
+using StudentsForStudentsAPI.Models.Mails;
 
 namespace StudentsForStudentsAPI.Controllers
 {
@@ -48,10 +49,9 @@ namespace StudentsForStudentsAPI.Controllers
             if (!request.Sender.Id.Equals(user.Id)) return BadRequest(new ErrorViewModel(true, "Vous n'avez pas le droit de supprimer une demande qui vous n'appartient pas"));
             if (request.Status) return BadRequest(new ErrorViewModel(true, "Vous ne pouvez pas supprimer une demande acceptée"));
 
-            _mailService.SendMail($"Suppression de la demande \"{request.Name}\"", new string[] { user.UserName, request.Name }, "DeleteRequest", user.Email);
-            //_mailService.SendMail($"Suppression de la demande \"{request.Name}\"", $"Bonjour {user.UserName}, \n\nVotre demande \"{request.Name}\" a bien été supprimée. \n\nCordialement, \nL'équipe de Students for Students.", user.Email, null);
+            _mailService.SendMail(new DeleteRequestMail($"Suppression de la demande \"{request.Name}\"", user.Email, null, new []{ user.UserName, request.Name }));
             _context.Requests.Remove(request);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
             
             await _hubContext.Clients.All.SendAsync("updateRequests");
             
@@ -76,12 +76,10 @@ namespace StudentsForStudentsAPI.Controllers
 
                 request.Status = !request.Status;
                 request.Handler = user;
-
-                _mailService.SendMail($"Demande \"{request.Name}\" acceptée", new string[] { request.Sender.UserName, request.Name, request.Handler.UserName }, "UpdateSenderRequest", request.Sender.Email);
-                _mailService.SendMail($"Demande \"{request.Name}\" acceptée", new string[] { request.Handler.UserName, request.Name, request.Sender.UserName }, "UpdateHandlerRequest", request.Handler.Email);
-                //_mailService.SendMail($"Demande \"{request.Name}\" acceptée", $"Bonjour {request.Sender.UserName}, \n\nVotre demande \"{request.Name}\" a été acceptée par {request.Handler.UserName}. N'hésitez pas à vous rendre dans la section \"Mes demandes\" pour la consulter. \n\nCordialement, \nL'équipe de Students for Students.", request.Sender.Email, null);
-                //_mailService.SendMail($"Demande \"{request.Name}\" acceptée", $"Bonjour {request.Handler.UserName}, \n\nVous avez accepté la demande \"{request.Name}\" de {request.Sender.UserName}. N'hésitez pas à vous rendre dans la section \"Mes demandes\" pour la consulter. \n\nCordialement, \nL'équipe de Students for Students.", request.Handler.Email, null);
-                _context.SaveChanges();
+                
+                _mailService.SendMail(new UpdateSenderRequestMail($"Demande \"{request.Name}\" acceptée", request.Sender.Email, null, new []{ request.Sender.UserName, request.Name, request.Handler.UserName }));
+                _mailService.SendMail(new UpdateHandlerRequestMail($"Demande \"{request.Name}\" acceptée", request.Handler.Email, null, new []{ request.Handler.UserName, request.Name, request.Sender.UserName }));
+                await _context.SaveChangesAsync();
 
                 await _hubContext.Clients.All.SendAsync("updateRequestStatus", request.Name, request.Sender.UserName, request.Handler.UserName);
                 
@@ -179,8 +177,7 @@ namespace StudentsForStudentsAPI.Controllers
                     Course = _context.Courses.Find(request.CourseId)
                 };
                 
-                _mailService.SendMail($"Création de la demande \"{newRequest.Name}\"", new string[] { user.UserName, newRequest.Name }, "AddRequest", user.Email);
-                //_mailService.SendMail($"Création de la demande \"{newRequest.Name}\"", $"Bonjour {user.UserName}, \n\nVotre demande \"{newRequest.Name}\" a bien été créée. N'hésitez pas à vous rendre dans la section \"Mes demandes\" pour la consulter. \n\nCordialement, \nL'équipe de Students for Students.", user.Email, null);
+                _mailService.SendMail(new AddRequestMail($"Création de la demande \"{newRequest.Name}\"", user.Email, null, new []{ user.UserName, newRequest.Name }));
                 _context.Requests.Add(newRequest);
                 _context.SaveChanges();
 

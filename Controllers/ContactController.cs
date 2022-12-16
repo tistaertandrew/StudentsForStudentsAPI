@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using StudentsForStudentsAPI.Models;
+using StudentsForStudentsAPI.Models.Mails;
 using StudentsForStudentsAPI.Models.ViewModels;
 using StudentsForStudentsAPI.Services.MailService;
 
@@ -35,8 +36,8 @@ namespace StudentsForStudentsAPI.Controllers
             var user = await _userManager.FindByEmailAsync(request.Email);
             var form = new Form(request.Subject, request.Message, request.Email, user);
 
-            _mailService.SendMail(form.Subject, new[] { form.Message }, "ContactToAdmin", null, request.Email);
-            _mailService.SendMail("Prise de contact avec un administrateur", Array.Empty<string>(), "ContactToUser", request.Email);
+            _mailService.SendMail(new ContactToAdminMail(form.Subject, null, request.Email, new []{ form.Message}));
+            _mailService.SendMail(new ContactToUserMail("Prise de contact avec un administrateur", request.Email, null, Array.Empty<string>()));
             _context.Forms.Add(form);
             await _context.SaveChangesAsync();
             
