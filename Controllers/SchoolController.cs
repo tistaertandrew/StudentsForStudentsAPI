@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using StudentsForStudentsAPI.Models;
+using StudentsForStudentsAPI.Models.DbModels;
 
 namespace StudentsForStudentsAPI.Controllers
 {

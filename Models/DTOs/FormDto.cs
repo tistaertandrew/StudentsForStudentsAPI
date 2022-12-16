@@ -1,8 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace StudentsForStudentsAPI.Models.ViewModels
+namespace StudentsForStudentsAPI.Models.DTOs
 {
-    public class FormViewModel
+    public class FormDto
     {
         [Required]
         public string LastName { get; set; } = string.Empty;

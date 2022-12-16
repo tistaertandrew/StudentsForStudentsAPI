@@ -1,4 +1,6 @@
-﻿namespace StudentsForStudentsAPI.Models.ViewModels
+﻿using StudentsForStudentsAPI.Models.DbModels;
+
+namespace StudentsForStudentsAPI.Models.ViewModels
 {
     public class FileViewModel
     {

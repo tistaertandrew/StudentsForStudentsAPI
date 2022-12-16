@@ -3,12 +3,12 @@
     public class SuccessViewModel
     {
         public bool Error { get; set; }
-        public string Message { get; set; } = string.Empty;
+        public string Message { get; set; }
 
-        public SuccessViewModel(bool error, string message)
+        public SuccessViewModel(string message)
         {
-            this.Error = error;
-            this.Message = message;
+            Error = false;
+            Message = message;
         }
     }
 }

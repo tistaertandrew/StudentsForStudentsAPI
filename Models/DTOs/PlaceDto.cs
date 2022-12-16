@@ -1,8 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace StudentsForStudentsAPI.Models.ViewModels
+namespace StudentsForStudentsAPI.Models.DTOs
 {
-    public class PlaceViewModel
+    public class PlaceDto
     {
         [Required]
         public string Street { get; set; } = string.Empty;

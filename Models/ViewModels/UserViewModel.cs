@@ -1,4 +1,6 @@
-﻿namespace StudentsForStudentsAPI.Models
+﻿using StudentsForStudentsAPI.Models.DbModels;
+
+namespace StudentsForStudentsAPI.Models.ViewModels
 {
     public class UserViewModel
     {

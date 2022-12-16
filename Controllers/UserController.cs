@@ -6,11 +6,12 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using StudentsForStudentsAPI.Models;
+using StudentsForStudentsAPI.Models.DbModels;
+using StudentsForStudentsAPI.Models.DTOs;
 using StudentsForStudentsAPI.Models.ViewModels;
-using StudentsForStudentsAPI.Services;
 using StudentsForStudentsAPI.Services.MailService;
-using System.Security.Claims;
 using StudentsForStudentsAPI.Models.Mails;
+using StudentsForStudentsAPI.Services.UserService;
 
 namespace StudentsForStudentsAPI.Controllers
 {
@@ -26,7 +27,8 @@ namespace StudentsForStudentsAPI.Controllers
         private readonly IMailService _mailService;
         private readonly IHubContext<SignalRHub> _hubContext;
 
-        public UserController(DatabaseContext context, UserManager<User> userManager, IConfiguration config, IUserService userService, IMailService mailService, IHubContext<SignalRHub> hubContext)
+        public UserController(DatabaseContext context, UserManager<User> userManager, IConfiguration config,
+            IUserService userService, IMailService mailService, IHubContext<SignalRHub> hubContext)
         {
             _context = context;
             _userManager = userManager;
@@ -41,54 +43,70 @@ namespace StudentsForStudentsAPI.Controllers
         [Produces("application/json")]
         public async Task<ActionResult<SuccessViewModel>> DeleteUser(string emailAddress)
         {
-            if (!ModelState.IsValid) return BadRequest(new ErrorViewModel(true, "Adresse email invalide"));
-            if (!_userService.IsTokenValid()) return Unauthorized();
+            if (!ModelState.IsValid) return BadRequest(new ErrorViewModel("Adresse email invalide"));
 
             var user = await _userManager.FindByEmailAsync(emailAddress);
-            if (user == null) return NotFound(new ErrorViewModel(true, "Aucun utilisateur associé à cette adresse email"));
-            if (_userManager.IsInRoleAsync(user, "Admin").Result) return BadRequest(new ErrorViewModel(true, "Impossible de supprimer un administrateur"));
+            if (user == null)
+                return NotFound(new ErrorViewModel("Aucun utilisateur associé à cette adresse email"));
+            
+            if (_userManager.IsInRoleAsync(user, "Admin").Result)
+                return BadRequest(new ErrorViewModel("Impossible de supprimer un administrateur"));
 
-            var requests = _context.Requests.Include(r => r.Sender).Include(r => r.Handler).Where(r => r.Sender.Id.Equals(user.Id) || (r.Status && r.Handler.Id.Equals(user.Id))).ToList();
-            var files = _context.Files.Include(f => f.Owner).Where(f => f.Owner.Id.Equals(user.Id)).ToList();
-            var forms = _context.Forms.Include(f => f.Sender).Where(f => f.SenderEmail.Equals(user.Email) || f.Sender.Id.Equals(user.Id)).ToList();
+            var requests = _context.Requests
+                .Include(r => r.Sender)
+                .Include(r => r.Handler)
+                .Where(r => r.Handler != null &&
+                            (r.Sender.Id.Equals(user.Id) || (r.Status && r.Handler.Id.Equals(user.Id))))
+                .ToList();
+
+            var files = _context.Files
+                .Include(f => f.Owner)
+                .Where(f => f.Owner != null && f.Owner.Id.Equals(user.Id))
+                .ToList();
+
+            var forms = _context.Forms
+                .Include(f => f.Sender)
+                .Where(f =>
+                    f.Sender != null && f.SenderEmail != null &&
+                    (f.SenderEmail.Equals(user.Email) || f.Sender.Id.Equals(user.Id)))
+                .ToList();
 
             foreach (var request in requests) _context.Requests.Remove(request);
             foreach (var file in files) _context.Files.Remove(file);
             foreach (var form in forms) _context.Forms.Remove(form);
 
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
             await _userManager.DeleteAsync(user);
             await _hubContext.Clients.All.SendAsync("updateUsersCount");
             await _hubContext.Clients.All.SendAsync("updateUsers", user.Email);
             await _hubContext.Clients.All.SendAsync("updateRequests");
-            
-            _mailService.SendMail(new DeleteAccountMail("Suppression de votre compte", user.Email, null, new []{ user.UserName }));
+            _mailService.SendMail(new DeleteAccountMail("Suppression de votre compte", user.Email, null,
+                new[] { user.UserName }));
 
-            return Ok(new SuccessViewModel(false, "Utilisateur supprimé avec succès"));
+            return Ok(new SuccessViewModel("Utilisateur supprimé avec succès"));
         }
 
         [HttpPut("{emailAddress}/Username")]
         [Authorize(Roles = "Admin")]
         [Produces("application/json")]
-        public async Task<ActionResult<SuccessViewModel>> EditUser(string emailAddress, [FromBody] UsernameViewModel usernameViewModel)
+        public async Task<ActionResult<SuccessViewModel>> EditUser(string emailAddress, [FromBody] UsernameDto request)
         {
-            {
-                if (!ModelState.IsValid) return BadRequest(new ErrorViewModel(true, "Adresse email ou nom d'utilisateur invalide"));
-                if (!_userService.IsTokenValid()) return Unauthorized();
+            if (!ModelState.IsValid)
+                return BadRequest(new ErrorViewModel("Adresse email ou nom d'utilisateur invalide"));
 
-                var user = await _userManager.FindByEmailAsync(emailAddress);
-                if (user == null) return NotFound(new ErrorViewModel(true, "Aucun utilisateur associé à cette adresse email"));
+            var user = await _userManager.FindByEmailAsync(emailAddress);
+            if (user == null)
+                return NotFound(new ErrorViewModel("Aucun utilisateur associé à cette adresse email"));
 
-                user.UserName = usernameViewModel.Username;
-                var result = await _userManager.UpdateAsync(user);
-                if(!result.Succeeded) return BadRequest(new ErrorViewModel(true, string.Join(" | ", result.Errors.Select(e => e.Code))));
+            user.UserName = request.Username;
+            var result = await _userManager.UpdateAsync(user);
+            if (!result.Succeeded)
+                return BadRequest(new ErrorViewModel(string.Join(" | ", result.Errors.Select(e => e.Code))));
 
-                await _hubContext.Clients.All.SendAsync("updateUsers", user.Email);
+            await _hubContext.Clients.All.SendAsync("updateUsers", user.Email);
+            _mailService.SendMail(new EditAccountMail("Compte modifié", user.Email, null, new[] { user.UserName }));
 
-                _mailService.SendMail(new EditAccountMail("Compte modifié", user.Email, null, new []{ user.UserName }));
-
-                return Ok(new SuccessViewModel(false, "Utilisateur modifié avec succès"));
-            }
+            return Ok(new SuccessViewModel("Utilisateur modifié avec succès"));
         }
 
         [HttpPut("{emailAddress}/Status")]
@@ -96,19 +114,23 @@ namespace StudentsForStudentsAPI.Controllers
         [Produces("application/json")]
         public async Task<ActionResult<SuccessViewModel>> UpdateBannedStatus(string emailAddress)
         {
-            if (!ModelState.IsValid) return BadRequest(new ErrorViewModel(true, "Adresse email invalide"));
-            if (!_userService.IsTokenValid()) return Unauthorized();
+            if (!ModelState.IsValid) return BadRequest(new ErrorViewModel("Adresse email invalide"));
 
             var user = await _userManager.FindByEmailAsync(emailAddress);
-            if (user == null) return NotFound(new ErrorViewModel(true, "Aucun utilisateur associé à cette adresse email"));
-            if (_userManager.IsInRoleAsync(user, "Admin").Result) return BadRequest(new ErrorViewModel(true, "Impossible de bloquer un administrateur"));
+            if (user == null)
+                return NotFound(new ErrorViewModel("Aucun utilisateur associé à cette adresse email"));
+            
+            if (_userManager.IsInRoleAsync(user, "Admin").Result)
+                return BadRequest(new ErrorViewModel("Impossible de bloquer un administrateur"));
 
             user.IsBanned = !user.IsBanned;
             await _userManager.UpdateAsync(user);
             await _hubContext.Clients.All.SendAsync("updateUsers", user.Email);
-            _mailService.SendMail(new UpdateAccountMail("Statut de votre compte", user.Email, null, new []{ user.UserName, user.IsBanned ? "true" : "false" }));
+            _mailService.SendMail(new UpdateAccountMail("Statut de votre compte", user.Email, null,
+                new[] { user.UserName, user.IsBanned ? "true" : "false" }));
 
-            return Ok(new SuccessViewModel(false, $"Utilisateur {(user.IsBanned ? "bloqué" : "débloqué")} avec succès"));
+            return Ok(new SuccessViewModel(
+                $"Utilisateur {(user.IsBanned ? "bloqué" : "débloqué")} avec succès"));
         }
 
         [HttpPut("{calendarLink}")]
@@ -116,14 +138,13 @@ namespace StudentsForStudentsAPI.Controllers
         [Produces("application/json")]
         public ActionResult<SuccessViewModel> UpdateCalendarLink(string calendarLink)
         {
-            if (!ModelState.IsValid) return BadRequest(new ErrorViewModel(true, "Le lien du calendrier est invalide"));
-            
-            if (!_userService.IsTokenValid()) return Unauthorized();
-            
+            if (!ModelState.IsValid) return BadRequest(new ErrorViewModel("Le lien du calendrier est invalide"));
+
             var user = _userManager.FindByIdAsync(_userService.GetUserIdFromToken()).Result;
             user.CalendarLink = calendarLink;
             _context.SaveChanges();
-            return Ok(new SuccessViewModel(false, "Lien du calendrier mis à jour avec succès"));
+            
+            return Ok(new SuccessViewModel("Lien du calendrier mis à jour avec succès"));
         }
 
         [HttpGet("List")]
@@ -131,8 +152,6 @@ namespace StudentsForStudentsAPI.Controllers
         [Produces("application/json")]
         public async Task<ActionResult<List<UserViewModel>>> GetUsers()
         {
-            if (!_userService.IsTokenValid()) return Unauthorized();
-
             var users = await _context.Users
                 .Include(u => u.Cursus)
                 .ToListAsync();
@@ -154,84 +173,85 @@ namespace StudentsForStudentsAPI.Controllers
         [Produces("application/json")]
         public async Task<ActionResult<UserViewModel>> WhoAmI()
         {
-            if (!_userService.IsTokenValid()) return Unauthorized();
-
             var id = _userService.GetUserIdFromToken();
-            if (id == null)
-            {
-                return NotFound(new ErrorViewModel(true, "Aucun utilisateur associé à ce token"));
-            }
-            
+            if (id == null) return NotFound(new ErrorViewModel("Aucun utilisateur associé à ce token"));
+
             var user = await _userManager.FindByIdAsync(id);
-            if (user.IsBanned) return BadRequest(new ErrorViewModel(true, "Votre compte a été bloqué par un administrateur"));
+            if (user.IsBanned)
+                return BadRequest(new ErrorViewModel("Votre compte a été bloqué par un administrateur"));
 
             var isAdmin = await _userManager.IsInRoleAsync(user, "Admin");
-            user.Cursus = _context.Users.Where(u => u.Id == user.Id).Include(u => u.Cursus).ThenInclude(c => c.Section).FirstOrDefault().Cursus;
-            
+            user.Cursus = _context.Users
+                .Where(u => u.Id == user.Id)
+                .Include(u => u.Cursus)
+                .ThenInclude(c => c.Section)
+                .FirstOrDefault()!.Cursus;
+
             return Ok(new UserViewModel(user, isAdmin, Token.CreateToken(user, _userManager, _config)));
         }
 
         [AllowAnonymous]
         [HttpGet("Count")]
         [Produces("application/json")]
-        public ActionResult GetUsersCount()
-        {
-            return Ok(_context.Users.Count());
-        }
+        public ActionResult<int> GetUsersCount() => Ok(_context.Users.Count());
 
         [AllowAnonymous]
         [HttpPost("Google")]
         [Produces("application/json")]
-        public async Task<ActionResult<UserViewModel>> Google(OAuthViewModel request)
+        public async Task<ActionResult<UserViewModel>> Google(OAuthDto request)
         {
+            if(!ModelState.IsValid) return BadRequest(new ErrorViewModel("Informations invalides"));
             try
             {
-                var payload = GoogleJsonWebSignature.ValidateAsync(request.Credentials, new GoogleJsonWebSignature.ValidationSettings()).Result;
-                var user = _userManager.FindByEmailAsync(payload.Email).Result;
+                var payload = GoogleJsonWebSignature
+                    .ValidateAsync(request.Credentials, new GoogleJsonWebSignature.ValidationSettings()).Result;
                 
-                if (user == null) return NotFound(new ErrorViewModel(true, payload.Email));
-                if (user.IsBanned) return BadRequest(new ErrorViewModel(true, "Votre compte a été bloqué par un administrateur"));
+                var user = _userManager.FindByEmailAsync(payload.Email).Result;
+
+                if (user == null) return NotFound(new ErrorViewModel(payload.Email));
+                if (user.IsBanned)
+                    return BadRequest(new ErrorViewModel("Votre compte a été bloqué par un administrateur"));
 
                 var isAdmin = await _userManager.IsInRoleAsync(user, "Admin");
-                user.Cursus = _context.Users.Where(u => u.Id == user.Id).Include(u => u.Cursus).ThenInclude(c => c.Section).FirstOrDefault().Cursus;
+                user.Cursus = _context.Users
+                    .Where(u => u.Id == user.Id)
+                    .Include(u => u.Cursus)
+                    .ThenInclude(c => c.Section)
+                    .FirstOrDefault()!.Cursus;
 
                 return Ok(new UserViewModel(user, isAdmin, Token.CreateToken(user, _userManager, _config)));
             }
             catch (Exception)
             {
-                return BadRequest(new ErrorViewModel(true, "Mauvaise requête"));
+                return BadRequest(new ErrorViewModel("Mauvaise requête"));
             }
         }
 
         [AllowAnonymous]
         [HttpPost("SignIn")]
         [Produces("application/json")]
-        public async Task<ActionResult<UserViewModel>> SignIn(UserSignIn request)
+        public async Task<ActionResult<UserViewModel>> SignIn(UserSignInDto request)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(new ErrorViewModel(true, "Informations invalides"));
-            }
+            if (!ModelState.IsValid) return BadRequest(new ErrorViewModel("Informations invalides"));
 
             var user = await _userManager.FindByEmailAsync(request.Email);
-            if (user == null)
-            {
-                return BadRequest(new ErrorViewModel(true, "Email invalide"));
-            }
+            if (user == null) return BadRequest(new ErrorViewModel("Email invalide"));
 
             if (request.Password != string.Empty)
             {
                 var result = await _userManager.CheckPasswordAsync(user, request.Password);
-                if (!result)
-                {
-                    return BadRequest(new ErrorViewModel(true, "Mot de passe invalide"));
-                }
+                if (!result) return BadRequest(new ErrorViewModel("Mot de passe invalide"));
             }
 
-            if (user.IsBanned) return BadRequest(new ErrorViewModel(true, "Votre compte a été bloqué par un administrateur"));
+            if (user.IsBanned)
+                return BadRequest(new ErrorViewModel("Votre compte a été bloqué par un administrateur"));
 
             var isAdmin = await _userManager.IsInRoleAsync(user, "Admin");
-            user.Cursus = _context.Users.Where(u => u.Id == user.Id).Include(u => u.Cursus).ThenInclude(c => c.Section).FirstOrDefault().Cursus;
+            user.Cursus = _context.Users
+                .Where(u => u.Id == user.Id)
+                .Include(u => u.Cursus)
+                .ThenInclude(c => c.Section)
+                .FirstOrDefault()!.Cursus;
 
             return Ok(new UserViewModel(user, isAdmin, Token.CreateToken(user, _userManager, _config)));
         }
@@ -239,40 +259,44 @@ namespace StudentsForStudentsAPI.Controllers
         [AllowAnonymous]
         [HttpPost("SignUp")]
         [Produces("application/json")]
-        public async Task<ActionResult> SignUp(UserSignUp request)
+        public async Task<ActionResult<SuccessViewModel>> SignUp(UserSignUpDto request)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest("Informations invalides");
-            }
+            if (!ModelState.IsValid) return BadRequest("Informations invalides");
 
             try
             {
-                var user = new User();
-                user.UserName = string.Format("{0} {1}", request.LastName, request.FirstName);
-                user.Email = request.Email;
-                user.Cursus = _context.Cursus.Where(c => c.Id == request.CursusId).First();
-
-                var result = request.Password != string.Empty ? await _userManager.CreateAsync(user, request.Password) : await _userManager.CreateAsync(user);
-                if (!result.Succeeded)
+                var user = new User
                 {
-                    return BadRequest(new ErrorViewModel(true, string.Join(" | ", result.Errors.Select(e => e.Code))));
-                }
+                    UserName = $"{request.LastName} {request.FirstName}",
+                    Email = request.Email,
+                    Cursus = _context.Cursus.First(c => c.Id == request.CursusId)
+                };
+
+                var result = request.Password != string.Empty
+                    ? await _userManager.CreateAsync(user, request.Password)
+                    : await _userManager.CreateAsync(user);
+                
+                if (!result.Succeeded)
+                    return BadRequest(new ErrorViewModel(string.Join(" | ", result.Errors.Select(e => e.Code))));
 
                 await _userManager.AddToRoleAsync(user, "Member");
-                user.Cursus = _context.Users.Where(u => u.Id == user.Id).Include(u => u.Cursus).ThenInclude(c => c.Section).FirstOrDefault().Cursus;
+                user.Cursus = _context.Users
+                    .Where(u => u.Id == user.Id)
+                    .Include(u => u.Cursus)
+                    .ThenInclude(c => c.Section)
+                    .FirstOrDefault()!.Cursus;
 
-
-                _mailService.SendMail(new AddAccountMail("Bienvenue sur Students for Students !", user.Email, null, new []{ user.UserName }));
+                _mailService.SendMail(new AddAccountMail("Bienvenue sur Students for Students !", user.Email, null,
+                    new[] { user.UserName }));
+                
                 await _hubContext.Clients.All.SendAsync("updateUsersCount");
                 await _hubContext.Clients.All.SendAsync("updateUsers");
 
-                return Ok(new SuccessViewModel(false, "Compte créé avec succès"));
-
+                return Ok(new SuccessViewModel("Compte créé avec succès"));
             }
             catch (Exception)
             {
-                return NotFound(new ErrorViewModel(true, "Cursus invalide"));
+                return NotFound(new ErrorViewModel("Cursus invalide"));
             }
         }
     }

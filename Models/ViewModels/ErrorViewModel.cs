@@ -1,14 +1,14 @@
-﻿namespace StudentsForStudentsAPI.Models
+﻿namespace StudentsForStudentsAPI.Models.ViewModels
 {
     public class ErrorViewModel
     {
         public bool Error { get; set; }
-        public string Message { get; set; } = string.Empty;
+        public string Message { get; set; }
 
-        public ErrorViewModel(bool error, string message)
+        public ErrorViewModel(string message)
         {
-            this.Error = error;
-            this.Message = message;
+            Error = true;
+            Message = message;
         }
     }
 }

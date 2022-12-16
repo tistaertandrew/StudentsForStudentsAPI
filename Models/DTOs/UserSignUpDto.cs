@@ -1,8 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace StudentsForStudentsAPI.Models
+namespace StudentsForStudentsAPI.Models.DTOs
 {
-    public class UserSignUp
+    public class UserSignUpDto
     {
         [Required]
         public string LastName { get; set; } = string.Empty;

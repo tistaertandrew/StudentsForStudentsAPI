@@ -1,8 +1,7 @@
-﻿using Org.BouncyCastle.Asn1.Ocsp;
-using StudentsForStudentsAPI.Models.ViewModels;
-using System.Xml.Linq;
+﻿using System.Xml.Linq;
+using StudentsForStudentsAPI.Models.DTOs;
 
-namespace StudentsForStudentsAPI.Models
+namespace StudentsForStudentsAPI.Models.DbModels
 {
     public class Place
     {
@@ -22,7 +21,7 @@ namespace StudentsForStudentsAPI.Models
             Locality = locality;
         }
 
-        public static PlaceViewModel? CheckAddress(string fullAddress, IConfiguration config)
+        public static PlaceDto? CheckAddress(string fullAddress, IConfiguration config)
         {
             string? street = null;
             string? number = null;
@@ -59,7 +58,7 @@ namespace StudentsForStudentsAPI.Models
 
             if (street == null || number == null || postalCode == -1 || locality == null) return null;
 
-            return new PlaceViewModel() { Street = street, Number = number, PostalCode = postalCode, Locality = locality };
+            return new PlaceDto() { Street = street, Number = number, PostalCode = postalCode, Locality = locality };
         }
     }
 }

@@ -9,6 +9,8 @@ using StudentsForStudentsAPI.Models;
 using StudentsForStudentsAPI.Models.ViewModels;
 using StudentsForStudentsAPI.Services;
 using System.Xml.Linq;
+using StudentsForStudentsAPI.Models.DbModels;
+using StudentsForStudentsAPI.Models.DTOs;
 
 namespace StudentsForStudentsAPI.Controllers
 {
@@ -34,14 +36,14 @@ namespace StudentsForStudentsAPI.Controllers
         [HttpPost]
         [Authorize(Roles = "Member,Admin")]
         [Produces("application/json")]
-        public ActionResult<SuccessViewModel> AddPlace(PlaceViewModel request)
+        public ActionResult<SuccessViewModel> AddPlace(PlaceDto request)
         {
-            if (!ModelState.IsValid) return BadRequest(new ErrorViewModel(true, "Informations invalides"));
+            if (!ModelState.IsValid) return BadRequest(new ErrorViewModel("Informations invalides"));
 
             var fullAddress = $"{request.Street} {request.Number}, {request.PostalCode} {request.Locality}";
             var correctedPlace = Place.CheckAddress(fullAddress, _config);
 
-            if (correctedPlace == null) return BadRequest(new ErrorViewModel(true, "Adresse invalide"));
+            if (correctedPlace == null) return BadRequest(new ErrorViewModel("Adresse invalide"));
 
             var place = new Place(correctedPlace.Street, 
                 correctedPlace.PostalCode, 
@@ -53,12 +55,12 @@ namespace StudentsForStudentsAPI.Controllers
                     && p.PostalCode == place.PostalCode 
                     && p.Number == place.Number 
                     && p.Locality == place.Locality))
-                return BadRequest(new ErrorViewModel(true, "Ce lieu existe déjà"));
+                return BadRequest(new ErrorViewModel("Ce lieu existe déjà"));
 
             _context.Places.Add(place);
             _context.SaveChanges();
             
-            return Ok(new SuccessViewModel(false, "Lieu ajouté avec succès"));
+            return Ok(new SuccessViewModel("Lieu ajouté avec succès"));
         }
     }
 }

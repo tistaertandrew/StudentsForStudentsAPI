@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using StudentsForStudentsAPI.Models.ConfigurationFiles;
+using StudentsForStudentsAPI.Models.DbModels;
+using File = StudentsForStudentsAPI.Models.DbModels.File;
 
 namespace StudentsForStudentsAPI.Models
 {

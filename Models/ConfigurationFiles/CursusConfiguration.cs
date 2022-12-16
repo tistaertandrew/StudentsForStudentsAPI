@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using StudentsForStudentsAPI.Models.DbModels;
 
 namespace StudentsForStudentsAPI.Models.ConfigurationFiles
 {

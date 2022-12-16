@@ -1,4 +1,4 @@
-﻿namespace StudentsForStudentsAPI.Models
+﻿namespace StudentsForStudentsAPI.Models.DbModels
 {
     public static class Calendar
     {
@@ -6,9 +6,9 @@
         {
             try
             {
-                using HttpClient client = new HttpClient();
-                using HttpResponseMessage resp = await client.GetAsync(calendarUrl);
-                using HttpContent content = resp.Content;
+                using var client = new HttpClient();
+                using var resp = await client.GetAsync(calendarUrl);
+                using var content = resp.Content;
                 return content.ReadAsStringAsync().Result;
             }
             catch (Exception)

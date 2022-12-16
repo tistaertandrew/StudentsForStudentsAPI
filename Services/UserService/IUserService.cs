@@ -1,4 +1,4 @@
-﻿namespace StudentsForStudentsAPI.Services
+﻿namespace StudentsForStudentsAPI.Services.UserService
 {
     public interface IUserService
     {

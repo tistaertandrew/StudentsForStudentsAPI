@@ -1,6 +1,6 @@
 ﻿using System.Security.Claims;
 
-namespace StudentsForStudentsAPI.Services
+namespace StudentsForStudentsAPI.Services.UserService
 {
     public class UserService : IUserService
     {

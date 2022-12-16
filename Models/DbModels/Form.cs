@@ -1,4 +1,4 @@
-﻿namespace StudentsForStudentsAPI.Models
+﻿namespace StudentsForStudentsAPI.Models.DbModels
 {
     public class Form
     {

@@ -1,7 +1,7 @@
-﻿using Microsoft.AspNetCore.Identity;
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
+using Microsoft.AspNetCore.Identity;
 
-namespace StudentsForStudentsAPI.Models
+namespace StudentsForStudentsAPI.Models.DbModels
 {
     public class User : IdentityUser, IEqualityComparer<User>
     {

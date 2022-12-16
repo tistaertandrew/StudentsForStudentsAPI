@@ -5,10 +5,11 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using StudentsForStudentsAPI;
 using StudentsForStudentsAPI.Models;
-using StudentsForStudentsAPI.Services;
 using StudentsForStudentsAPI.Services.MailService;
 using Swashbuckle.AspNetCore.Filters;
 using System.Text;
+using StudentsForStudentsAPI.Models.DbModels;
+using StudentsForStudentsAPI.Services.UserService;
 
 var builder = WebApplication.CreateBuilder(args);
 var builderConf = new ConfigurationBuilder()
@@ -17,13 +18,13 @@ var builderConf = new ConfigurationBuilder()
                  .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true)
                  .AddEnvironmentVariables();
 
-var Configuration = builderConf.Build();
+var configuration = builderConf.Build();
 
-var connectionString = Configuration.GetConnectionString("default");
+var connectionString = configuration.GetConnectionString("default");
 
 builder.Services.AddCors(p => p.AddPolicy("StudentsForStudents", builder =>
 {
-    builder.WithOrigins(Configuration.GetSection("CorsURL").Value).AllowAnyMethod().AllowAnyHeader().AllowCredentials();
+    builder.WithOrigins(configuration.GetSection("CorsURL").Value).AllowAnyMethod().AllowAnyHeader().AllowCredentials();
 }));
 
 
@@ -47,7 +48,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
     options.TokenValidationParameters = new TokenValidationParameters()
     {
         ValidateIssuerSigningKey = true,
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration.GetSection("AppSettings:JwtSecret").Value)),
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration.GetSection("AppSettings:JwtSecret").Value)),
         ValidateIssuer = false,
         ValidateAudience = false
     };
@@ -60,6 +61,15 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
+    options.EnableAnnotations();
+    
+    options.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Version = "v1",
+        Title = "StudentsForStudentsAPI",
+        Description = "Une API pour l'application web et mobile StudentsForStudents",
+    });
+    
     options.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
     {
         Description = "Standard Authorization Header using the Bearer scheme (\"bearer {token}\")",

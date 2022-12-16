@@ -10,7 +10,10 @@ using StudentsForStudentsAPI.Services;
 using StudentsForStudentsAPI.Services.FileTransfer;
 using StudentsForStudentsAPI.Services.MailService;
 using System.Text.RegularExpressions;
+using StudentsForStudentsAPI.Models.DbModels;
 using StudentsForStudentsAPI.Models.Mails;
+using StudentsForStudentsAPI.Services.UserService;
+using File = StudentsForStudentsAPI.Models.DbModels.File;
 
 namespace StudentsForStudentsAPI.Controllers
 {
@@ -57,7 +60,7 @@ namespace StudentsForStudentsAPI.Controllers
         [Produces("application/json")]
         public IActionResult DownloadFile(string filename)
         {
-            Models.File dbFile;
+            File dbFile;
             var errors = new List<string>();
             User user;
             bool isError = false;
@@ -90,7 +93,7 @@ namespace StudentsForStudentsAPI.Controllers
             }
 
             var errors = new List<string>();
-            var file = new Models.File
+            var file = new File
             {
                 Course = _context.Courses.Include(c => c.Cursus).ThenInclude(c => c.Section).Where(c => c.Id == request.CourseId).First(),
                 Name = request.Filename,
@@ -127,7 +130,7 @@ namespace StudentsForStudentsAPI.Controllers
         [Produces("application/json")]
         public async Task<IActionResult> DeleteFile(string filename)
         {
-            Models.File dbFile;
+            File dbFile;
             User user;
             var errors = new List<string>();
             bool isError = false;
@@ -160,7 +163,7 @@ namespace StudentsForStudentsAPI.Controllers
         [Produces("application/json")]
         public IActionResult GetFilesMetadata()
         {
-            List<Models.File> files = new List<Models.File>();
+            List<File> files = new List<File>();
             var isError = false;
             var errors = new List<string>();
 
@@ -187,10 +190,10 @@ namespace StudentsForStudentsAPI.Controllers
                 isError = true;
             }
 
-            return Ok(new FileResponseViewModel<List<Models.File>>(content: files, isError: isError, errors));
+            return Ok(new FileResponseViewModel<List<File>>(content: files, isError: isError, errors));
         }
 
-        private void ThrowExceptionIfFileEntryAlreadyExists(Models.File file)
+        private void ThrowExceptionIfFileEntryAlreadyExists(File file)
         {
             try
             {
@@ -205,7 +208,7 @@ namespace StudentsForStudentsAPI.Controllers
             }
         }
 
-        private void RemoveFromDatabaseIfExists(Models.File file)
+        private void RemoveFromDatabaseIfExists(File file)
         {
             if (IsFileNameExistsInDatabase(file))
             {
@@ -214,7 +217,7 @@ namespace StudentsForStudentsAPI.Controllers
             }
         }
 
-        private bool IsFileNameExistsInDatabase(Models.File file)
+        private bool IsFileNameExistsInDatabase(File file)
         {
             return _context.Files.Any(current => current.Name.Equals(file.Name));
         }
@@ -225,7 +228,7 @@ namespace StudentsForStudentsAPI.Controllers
         /// <param name="file"></param>
         /// <param name="user"></param>
         /// <exception cref="Exception">errors could happens while saving</exception>
-        private void SaveFileEntryToDatabase(Models.File file)
+        private void SaveFileEntryToDatabase(File file)
         {
             try
             {
@@ -243,7 +246,7 @@ namespace StudentsForStudentsAPI.Controllers
         /// </summary>
         /// <param name="file">the path to the file to test existence in remote</param>
         /// <exception cref="Exception">if the file does not exists in remote</exception>
-        private void ThrowExceptionIfFileDoesNotExistsInRemoteServer(Models.File file)
+        private void ThrowExceptionIfFileDoesNotExistsInRemoteServer(File file)
         {
             if (!FileExistsInRemoteServer(file))
             {
@@ -257,7 +260,7 @@ namespace StudentsForStudentsAPI.Controllers
         /// <param name="filename"></param>
         /// <returns></returns>
         /// <exception cref="Exception">If any entry haev the given filename or if an exception occure while getting the entry from the database</exception>
-        private Models.File GetFileEntryFromDatabaseByName(string filename)
+        private File GetFileEntryFromDatabaseByName(string filename)
         {
             try
             {
@@ -292,7 +295,7 @@ namespace StudentsForStudentsAPI.Controllers
         /// <param name="file"></param>
         /// <exception cref="Exception">if the current user don't own the file</exception>
         /// <see cref="GetCurrentUserFromToken"/>
-        private void ThrowExceptionIfCurrentUserDontOwnFile(Models.File file)
+        private void ThrowExceptionIfCurrentUserDontOwnFile(File file)
         {
             try
             {
@@ -312,7 +315,7 @@ namespace StudentsForStudentsAPI.Controllers
         /// <param name="file"></param>
         /// <param name="remoteDestinationPath"></param>
         /// <exception cref="Exception"></exception>
-        private void UploadFileToRemoteServer(Models.File file, string content)
+        private void UploadFileToRemoteServer(File file, string content)
         {
             try
             {
@@ -330,7 +333,7 @@ namespace StudentsForStudentsAPI.Controllers
         /// <param name="file"></param>
         /// <returns>the file's content</returns>
         /// <exception cref="Exception"></exception>
-        private string GetFileContentFromRemoteServer(Models.File file)
+        private string GetFileContentFromRemoteServer(File file)
         {
             try
             {
@@ -348,7 +351,7 @@ namespace StudentsForStudentsAPI.Controllers
         /// </summary>
         /// <param name="dbFile">the entry file to delete from remote server</param>
         /// <returns></returns>
-        private void DeleteFileFromRemoteServer(Models.File dbFile)
+        private void DeleteFileFromRemoteServer(File dbFile)
         {
             try
             {
@@ -365,7 +368,7 @@ namespace StudentsForStudentsAPI.Controllers
         /// </summary>
         /// <param name="dbFile">the file to build the path from</param>
         /// <returns>the path to file in remote server</returns>
-        private string GetPathToFileInRemoteServer(Models.File dbFile)
+        private string GetPathToFileInRemoteServer(File dbFile)
         {
             return $"{_remoteWorkingDirectory}/{dbFile.Name}.{dbFile.Extension}";
         }
@@ -375,7 +378,7 @@ namespace StudentsForStudentsAPI.Controllers
         /// </summary>
         /// <param name="file"></param>
         /// <returns>true if the file exists, otherwise false</returns>
-        private bool FileExistsInRemoteServer(Models.File file) => _fileTransfer.FileExists(GetPathToFileInRemoteServer(file));
+        private bool FileExistsInRemoteServer(File file) => _fileTransfer.FileExists(GetPathToFileInRemoteServer(file));
 
         protected override void Dispose(bool disposing)
         {
