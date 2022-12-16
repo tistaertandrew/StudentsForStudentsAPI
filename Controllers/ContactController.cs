@@ -30,31 +30,17 @@ namespace StudentsForStudentsAPI.Controllers
         [Produces("application/json")]
         public async Task<ActionResult<SuccessViewModel>> Contact(FormViewModel request)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(new ErrorViewModel(true, "Informations invalides"));
-            }
+            if (!ModelState.IsValid) return BadRequest(new ErrorViewModel(true, "Informations invalides"));
 
             var user = await _userManager.FindByEmailAsync(request.Email);
-            var form = new Form();
+            var form = new Form(request.Subject, request.Message, request.Email, user);
 
-            if (user == null) form.SenderEmail = request.Email;
-            else form.Sender = user;
-
-            form.Date = DateTime.Now;
-            form.Subject = request.Subject;
-            form.Message = request.Message;
-            form.Status = false;
-
-
-            _mailService.SendMail(form.Subject, new string[] { form.Message }, "ContactToAdmin", null, request.Email);
-            _mailService.SendMail("Prise de contact avec un administrateur", new string[] { }, "ContactToUser", request.Email);
-            //_mailService.SendMail(form.Subject, form.Message, null, request.Email);
-            //_mailService.SendMail("Prise de contact avec un administrateur", "Bonjour, \n\nVotre prise de contact a bien été prise en compte. Nous vous répondrons dans les plus brefs délais.\n\nCordialement,\nL'équipe de Students for Students.", request.Email, null);
-
+            _mailService.SendMail(form.Subject, new[] { form.Message }, "ContactToAdmin", null, request.Email);
+            _mailService.SendMail("Prise de contact avec un administrateur", Array.Empty<string>(), "ContactToUser", request.Email);
             _context.Forms.Add(form);
-            _context.SaveChanges();
-            return Ok(new SuccessViewModel(false, "Mail envoyé"));
+            await _context.SaveChangesAsync();
+            
+            return Ok(new SuccessViewModel(false, "Mail envoyé avec succès"));
         }
     }
 }

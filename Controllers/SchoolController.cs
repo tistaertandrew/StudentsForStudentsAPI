@@ -20,64 +20,45 @@ namespace StudentsForStudentsAPI.Controllers
         }
 
         [AllowAnonymous]
-        [HttpGet("Section/{id}")]
+        [HttpGet("Section/{id:int}")]
         [Produces("application/json")]
-        public ActionResult<Section> GetSection(int id)
-        {
-            var section = _context.Sections.Where(s => s.Id == id).ToList();
-            return Ok(section);
-        }
+        public ActionResult<Section> GetSectionById(int id) => Ok(_context.Sections.FirstOrDefault(s => s.Id == id));
 
         [AllowAnonymous]
         [HttpGet("Section")]
         [Produces("application/json")]
-        public ActionResult<List<Section>> GetSections()
-        {
-            var sections = _context.Sections.ToList();
-            return Ok(sections);
-        }
+        public ActionResult<List<Section>> GetSections() => Ok(_context.Sections.ToList());
 
         [AllowAnonymous]
-        [HttpGet("Cursus/{id}")]
+        [HttpGet("Cursus/{id:int}")]
         [Produces("application/json")]
-        public ActionResult<Cursus> GetCursus(int id)
-        {
-            var cursus = _context.Cursus.Include(c => c.Section).Where(c => c.Section.Id == id).ToList();
-            return Ok(cursus);
-        }
+        public ActionResult<List<Cursus>> GetCursusBySectionId(int id) => Ok(_context.Cursus
+            .Include(c => c.Section)
+            .Where(c => c.Section.Id == id)
+            .ToList());
 
         [AllowAnonymous]
         [HttpGet("Cursus")]
         [Produces("application/json")]
-        public ActionResult<List<Cursus>> GetCursus()
-        {
-            var cursus = _context.Cursus.Include(c => c.Section).ToList();
-            return Ok(cursus);
-        }
+        public ActionResult<List<Cursus>> GetCursus() => Ok(_context.Cursus
+            .Include(c => c.Section)
+            .ToList());
 
         [AllowAnonymous]
-        [HttpGet("Course/{id}")]
+        [HttpGet("Course/{id:int}")]
         [Produces("application/json")]
-        public ActionResult<Course> GetCourse(int id)
-        {
-            var course = _context.Courses
-                .Include(c => c.Cursus)
-                .ThenInclude(c => c.Section)
-                .Where(c => c.Cursus.Id == id)
-                .ToList();
-            return Ok(course);
-        }
+        public ActionResult<List<Course>> GetCoursesByCursusId(int id) => Ok(_context.Courses
+            .Include(c => c.Cursus)
+            .ThenInclude(c => c.Section)
+            .Where(c => c.Cursus.Id == id)
+            .ToList());
 
         [AllowAnonymous]
         [HttpGet("Course")]
         [Produces("application/json")]
-        public ActionResult<List<Course>> GetCourses()
-        {
-            var courses = _context.Courses
-                .Include(c => c.Cursus)
-                .ThenInclude(c => c.Section)
-                .ToList();
-            return Ok(courses);
-        }
+        public ActionResult<List<Course>> GetCourses() => Ok(_context.Courses
+            .Include(c => c.Cursus)
+            .ThenInclude(c => c.Section)
+            .ToList());
     }
 }

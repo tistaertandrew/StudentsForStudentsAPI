@@ -27,14 +27,13 @@ namespace StudentsForStudentsAPI.Controllers
         [HttpGet]
         [Authorize(Roles = "Member,Admin")]
         [Produces("application/json")]
-        public async Task<ActionResult> GetCalendar()
+        public ActionResult<string> GetCalendar()
         {
-            if (!_userService.IsTokenValid()) return Unauthorized();
-            
-            string? calendarUrl = HttpUtility.UrlDecode(_userManager.FindByIdAsync(_userService.GetUserIdFromToken()).Result.CalendarLink);
-            string? calendar = Calendar.GetCalendar(calendarUrl).Result;
+            var calendarUrl = HttpUtility.UrlDecode(_userManager.FindByIdAsync(_userService.GetUserIdFromToken()).Result.CalendarLink);
+            var calendar = Calendar.GetCalendar(calendarUrl).Result;
 
             if (calendar == null) return NotFound(new ErrorViewModel(true, "Aucun calendrier trouvé"));
+            
             return Ok(calendar);
         }
     }
