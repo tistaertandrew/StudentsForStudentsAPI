@@ -264,7 +264,7 @@ namespace StudentsForStudentsAPI.Controllers
                 user.Cursus = _context.Users.Where(u => u.Id == user.Id).Include(u => u.Cursus).ThenInclude(c => c.Section).FirstOrDefault().Cursus;
 
 
-                _mailService.SendMail("Bienvue sur Students for Students !", new string[] { user.UserName }, "DeleteAccount", user.Email);
+                _mailService.SendMail("Bienvue sur Students for Students !", new string[] { user.UserName }, "AddAccount", user.Email);
                 //_mailService.SendMail("Bienvenue sur Students for Students !", "Bonjour " + user.UserName + ",\n\nNous vous souhaitons la bienvenue sur notre application Students for Students !\n\nCordialement,\nL'équipe de Students for Students.", user.Email, null);
                 await _hubContext.Clients.All.SendAsync("updateUsersCount");
                 await _hubContext.Clients.All.SendAsync("updateUsers");
