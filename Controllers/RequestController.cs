@@ -14,9 +14,13 @@ using StudentsForStudentsAPI.Models.DbModels;
 using StudentsForStudentsAPI.Models.DTOs;
 using StudentsForStudentsAPI.Models.Mails;
 using StudentsForStudentsAPI.Services.UserService;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace StudentsForStudentsAPI.Controllers
 {
+    /// <summary>
+    /// Controller qui permet d'effectuer les opérations CRUD sur les demandes de tutorat
+    /// </summary>
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [Route("[controller]")]
     [ApiController]
@@ -28,6 +32,14 @@ namespace StudentsForStudentsAPI.Controllers
         private readonly IMailService _mailService;
         private readonly IHubContext<SignalRHub> _hubContext;
 
+        /// <summary>
+        /// Constructeur du controller qui permet d'effectuer les opérations CRUD sur les demandes de tutorat
+        /// </summary>
+        /// <param name="context">Un objet permettant d'intéragir avec la base de données</param>
+        /// <param name="userService">Un service permettant d'intéragir avec l'utilisateur connecté</param>
+        /// <param name="userManager">Un service permettant de gérer l'utilisateur connecté</param>
+        /// <param name="mailService">Un service qui permet d'envoyer des mails</param>
+        /// <param name="hubContext">Un objet permettant d'envoyer des notifications aux différents clients connectés</param>
         public RequestController(DatabaseContext context, IUserService userService, UserManager<User> userManager,
             IMailService mailService, IHubContext<SignalRHub> hubContext)
         {
@@ -38,9 +50,20 @@ namespace StudentsForStudentsAPI.Controllers
             _hubContext = hubContext;
         }
 
+        /// <summary>
+        /// Route (DELETE) qui permet de supprimer une demande de tutorat
+        /// </summary>
+        /// <param name="requestId">L'identifiant de la demande de tutorat à supprimer</param>
+        /// <returns>Un ViewModel spécifiant que la suppression s'est bien effectuée</returns>
         [HttpDelete("{requestId:int}")]
         [Authorize(Roles = "Member,Admin")]
         [Produces("application/json")]
+        [SwaggerOperation(Summary = "Supprime une demande de tutorat")]
+        [SwaggerResponse(StatusCodes.Status200OK, "La demande de tutorat a bien été supprimée", typeof(SuccessViewModel))]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "L'identifiant de la demande de tutorat n'est pas valide", typeof(ErrorViewModel))]
+        [SwaggerResponse(StatusCodes.Status401Unauthorized, "L'utilisateur n'est pas connecté ou son token est invalide")]
+        [SwaggerResponse(StatusCodes.Status403Forbidden, "L'utilisateur n'a pas les droits pour accéder à cette ressource")]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "La demande de tutorat n'existe pas", typeof(ErrorViewModel))]
         public async Task<ActionResult<SuccessViewModel>> DeleteRequest(int requestId)
         {
             if (!ModelState.IsValid) return BadRequest(new ErrorViewModel("Informations invalides"));
@@ -65,9 +88,20 @@ namespace StudentsForStudentsAPI.Controllers
             return Ok(new SuccessViewModel("Demande supprimée avec succès"));
         }
 
+        /// <summary>
+        /// Route (PUT) qui permet de modifier le statut et le tuteur d'une demande de tutorat
+        /// </summary>
+        /// <param name="requestId">L'identifiant de le demande</param>
+        /// <returns>Un ViewModel spécifiant que la demande a bien été acceptée</returns>
         [HttpPut("{requestId:int}")]
         [Authorize(Roles = "Member,Admin")]
         [Produces("application/json")]
+        [SwaggerOperation(Summary = "Accepte une demande de tutorat")]
+        [SwaggerResponse(StatusCodes.Status200OK, "La demande de tutorat a bien été acceptée", typeof(SuccessViewModel))]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "L'identifiant de la demande de tutorat n'est pas valide", typeof(ErrorViewModel))]
+        [SwaggerResponse(StatusCodes.Status401Unauthorized, "L'utilisateur n'est pas connecté ou son token est invalide")]
+        [SwaggerResponse(StatusCodes.Status403Forbidden, "L'utilisateur n'a pas les droits pour accéder à cette ressource")]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "La demande de tutorat n'existe pas", typeof(ErrorViewModel))]
         public async Task<ActionResult<SuccessViewModel>> UpdateRequest(int requestId)
         {
             if (!ModelState.IsValid) return BadRequest(new ErrorViewModel("Informations invalides"));
@@ -96,9 +130,20 @@ namespace StudentsForStudentsAPI.Controllers
             return Ok(new SuccessViewModel("Demande acceptée avec succès"));
         }
 
+        /// <summary>
+        /// Route (GET) qui permet de récupérer :
+        /// Si own = true : les demandes de tutorat publiques (sans les demandes de l'utilisateur connecté)
+        /// Si owner = false : les demandes de tutorat personnelles (celles de l'utilisateur connecté)
+        /// </summary>
+        /// <param name="own">Un booléen qui permet de savoir si l'on veut les demandes publiques ou personnelles</param>
+        /// <returns>Une liste de requêtes transformées en ViewModel</returns>
         [HttpGet("{own:bool}")]
         [Authorize(Roles = "Member,Admin")]
         [Produces("application/json")]
+        [SwaggerOperation(Summary = "Récupère les demandes de tutorat (publiques ou personnelles)")]
+        [SwaggerResponse(StatusCodes.Status200OK, "Les demandes de tutorat ont bien été récupérées", typeof(List<RequestViewModel>))]
+        [SwaggerResponse(StatusCodes.Status401Unauthorized, "L'utilisateur n'est pas connecté ou son token est invalide")]
+        [SwaggerResponse(StatusCodes.Status403Forbidden, "L'utilisateur n'a pas les droits pour accéder à cette ressource")]
         public ActionResult<List<RequestViewModel>> GetRequests(bool own)
         {
             if (!ModelState.IsValid) return BadRequest(new ErrorViewModel("Informations invalides"));
@@ -117,9 +162,19 @@ namespace StudentsForStudentsAPI.Controllers
             }
         }
 
+        /// <summary>
+        /// Route (POST) qui permet de créer une demande de tutorat
+        /// </summary>
+        /// <param name="request">La potentielle nouvelle demande à ajouter</param>
+        /// <returns>Un ViewModel spécifiant que la demande a bien été créée</returns>
         [HttpPost]
         [Authorize(Roles = "Member, Admin")]
         [Produces("application/json")]
+        [SwaggerOperation(Summary = "Crée une demande de tutorat")]
+        [SwaggerResponse(StatusCodes.Status200OK, "La demande de tutorat a bien été créée", typeof(SuccessViewModel))]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Les informations de la demande de tutorat sont invalides", typeof(ErrorViewModel))]
+        [SwaggerResponse(StatusCodes.Status401Unauthorized, "L'utilisateur n'est pas connecté ou son token est invalide")]
+        [SwaggerResponse(StatusCodes.Status403Forbidden, "L'utilisateur n'a pas les droits pour accéder à cette ressource")]
         public async Task<ActionResult<SuccessViewModel>> CreateRequest(RequestDto request)
         {
             if (!ModelState.IsValid) return BadRequest(new ErrorViewModel("Informations invalides"));
