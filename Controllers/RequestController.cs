@@ -76,6 +76,7 @@ namespace StudentsForStudentsAPI.Controllers
             if (!request.Sender.Id.Equals(user.Id))
                 return BadRequest(new ErrorViewModel(
                     "Vous n'avez pas le droit de supprimer une demande qui vous n'appartient pas"));
+            
             if (request.Status)
                 return BadRequest(new ErrorViewModel("Vous ne pouvez pas supprimer une demande acceptée"));
 
@@ -120,9 +121,10 @@ namespace StudentsForStudentsAPI.Controllers
 
             _mailService.SendMail(new UpdateSenderRequestMail($"Demande \"{request.Name}\" acceptée",
                 request.Sender.Email, null, new[] { request.Sender.UserName, request.Name, request.Handler.UserName }));
+            
             _mailService.SendMail(new UpdateHandlerRequestMail($"Demande \"{request.Name}\" acceptée",
-                request.Handler.Email, null,
-                new[] { request.Handler.UserName, request.Name, request.Sender.UserName }));
+                request.Handler.Email, null, new[] { request.Handler.UserName, request.Name, request.Sender.UserName }));
+            
             await _context.SaveChangesAsync();
             await _hubContext.Clients.All.SendAsync("updateRequestStatus", request.Name, request.Sender.UserName,
                 request.Handler.UserName);
@@ -132,8 +134,8 @@ namespace StudentsForStudentsAPI.Controllers
 
         /// <summary>
         /// Route (GET) qui permet de récupérer :
-        /// Si own = true : les demandes de tutorat publiques (sans les demandes de l'utilisateur connecté)
-        /// Si owner = false : les demandes de tutorat personnelles (celles de l'utilisateur connecté)
+        /// Si own = false : les demandes de tutorat publiques (sans les demandes de l'utilisateur connecté)
+        /// Si owner = true : les demandes de tutorat personnelles (celles de l'utilisateur connecté)
         /// </summary>
         /// <param name="own">Un booléen qui permet de savoir si l'on veut les demandes publiques ou personnelles</param>
         /// <returns>Une liste de requêtes transformées en ViewModel</returns>
@@ -189,6 +191,7 @@ namespace StudentsForStudentsAPI.Controllers
 
                 _mailService.SendMail(new AddRequestMail($"Création de la demande \"{dbRequest.Name}\"", user.Email,
                     null, new[] { user.UserName, dbRequest.Name }));
+                
                 _context.Requests.Add(dbRequest);
                 await _context.SaveChangesAsync();
                 await _hubContext.Clients.All.SendAsync("updateRequests");
@@ -212,8 +215,8 @@ namespace StudentsForStudentsAPI.Controllers
                 .ThenInclude(c => c.Section)
                 .Include(r => r.Sender)
                 .Include(r => r.Handler)
-                .Where(r => r.Handler != null && (r.Sender.Id.Equals(_userService.GetUserIdFromToken()) ||
-                                                  r.Handler.Id.Equals(_userService.GetUserIdFromToken())))
+                .Where(r => r.Sender.Id.Equals(_userService.GetUserIdFromToken()) ||
+                                                  r.Handler.Id.Equals(_userService.GetUserIdFromToken()))
                 .OrderBy(r => r.Date)
                 .ToList();
 

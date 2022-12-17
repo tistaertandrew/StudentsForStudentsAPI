@@ -12,5 +12,7 @@ namespace StudentsForStudentsAPI.Models.DTOs
         public string Number { get; set; } = string.Empty;
         [Required]
         public string Locality { get; set; } = string.Empty;
+        
+        public override string ToString() => $"{Street} {Number}, {PostalCode} {Locality}";
     }
 }

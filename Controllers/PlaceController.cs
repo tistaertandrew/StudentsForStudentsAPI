@@ -67,8 +67,7 @@ namespace StudentsForStudentsAPI.Controllers
         {
             if (!ModelState.IsValid) return BadRequest(new ErrorViewModel("Informations invalides"));
 
-            var fullAddress = $"{request.Street} {request.Number}, {request.PostalCode} {request.Locality}";
-            var correctedPlace = Place.CheckAddress(fullAddress, _config);
+            var correctedPlace = Place.CheckAddress(request.ToString(), _config);
 
             if (correctedPlace == null) return BadRequest(new ErrorViewModel("Adresse invalide"));
 

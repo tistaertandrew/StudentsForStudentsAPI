@@ -79,20 +79,17 @@ namespace StudentsForStudentsAPI.Controllers
             var requests = _context.Requests
                 .Include(r => r.Sender)
                 .Include(r => r.Handler)
-                .Where(r => r.Handler != null &&
-                            (r.Sender.Id.Equals(user.Id) || (r.Status && r.Handler.Id.Equals(user.Id))))
+                .Where(r => r.Sender.Id.Equals(user.Id) || (r.Status && r.Handler.Id.Equals(user.Id)))
                 .ToList();
 
             var files = _context.Files
                 .Include(f => f.Owner)
-                .Where(f => f.Owner != null && f.Owner.Id.Equals(user.Id))
+                .Where(f => f.Owner.Id.Equals(user.Id))
                 .ToList();
 
             var forms = _context.Forms
                 .Include(f => f.Sender)
-                .Where(f =>
-                    f.Sender != null && f.SenderEmail != null &&
-                    (f.SenderEmail.Equals(user.Email) || f.Sender.Id.Equals(user.Id)))
+                .Where(f => f.SenderEmail.Equals(user.Email) || f.Sender.Id.Equals(user.Id))
                 .ToList();
 
             foreach (var request in requests) _context.Requests.Remove(request);

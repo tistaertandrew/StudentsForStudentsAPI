@@ -52,7 +52,7 @@ namespace StudentsForStudentsAPI.Controllers
             var user = await _userManager.FindByEmailAsync(request.Email);
             var form = new Form(request.Subject, request.Message, request.Email, user);
 
-            _mailService.SendMail(new ContactToAdminMail(form.Subject, null, request.Email, new []{ form.Message}));
+            _mailService.SendMail(new ContactToAdminMail(form.Subject, null, request.Email, new [] { form.Message }));
             _mailService.SendMail(new ContactToUserMail("Prise de contact avec un administrateur", request.Email, null, Array.Empty<string>()));
             _context.Forms.Add(form);
             await _context.SaveChangesAsync();
