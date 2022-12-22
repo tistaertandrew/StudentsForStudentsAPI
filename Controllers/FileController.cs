@@ -14,9 +14,13 @@ using StudentsForStudentsAPI.Models.DbModels;
 using StudentsForStudentsAPI.Models.Mails;
 using StudentsForStudentsAPI.Services.UserService;
 using File = StudentsForStudentsAPI.Models.DbModels.File;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace StudentsForStudentsAPI.Controllers
 {
+    /// <summary>
+    /// Controller qui permet de gérer les fichiers du système
+    /// </summary>
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [Route("[controller]")]
     [ApiController]
@@ -33,6 +37,15 @@ namespace StudentsForStudentsAPI.Controllers
         private readonly string _home;
         private readonly string _remoteWorkingDirectory;
 
+        /// <summary>
+        /// Constructeur du controller qui permet de gérer les fichiers du système
+        /// </summary>
+        /// <param name="context">Un objet permettant d'intéragir avec la base de données</param>
+        /// <param name="userManager">Un service permettant de gérer l'utilisateur connecté</param>
+        /// <param name="userService">Un service permettant d'intéragir avec l'utilisateur connecté</param>
+        /// <param name="mailService">Un service qui permet d'envoyer des mails</param>
+        /// <param name="hubContext">Un objet permettant d'envoyer des notifications aux différents clients connectés</param>
+        /// <param name="config">Un objet contenant la configuration du système</param>
         public FileController(DatabaseContext context, UserManager<User> userManager, IUserService userService, IMailService mailService, IHubContext<SignalRHub> hubContext, IConfiguration config = null)
         {
             _context = context;
@@ -46,19 +59,35 @@ namespace StudentsForStudentsAPI.Controllers
             _home = $"{_config.GetSection("RemoteFileServerSettings:RootRemoteDirectory").Value}/{_config.GetSection("RemoteFileServerSettings:UserName").Value}";
             _remoteWorkingDirectory = $"{_home}/{_config.GetSection("RemoteFileServerSettings:FilesRemoteDirectory").Value}";
         }
-
+        
+        /// <summary>
+        /// Route (GET) qui permet de récupérer le nombre de fichiers du système
+        /// </summary>
+        /// <returns>Le nombre de fichiers du système</returns>
         [AllowAnonymous]
         [HttpGet("Count")]
         [Produces("application/json")]
-        public ActionResult GetFilesCount()
+        [SwaggerOperation(Summary = "Retourne le nombre de fichiers du système")]
+        [SwaggerResponse(StatusCodes.Status200OK, "Le nombre a bien été récupéré", typeof(int))]
+        public ActionResult<int> GetFilesCount()
         {
             return Ok(_context.Files.Count());
         }
 
+        /// <summary>
+        /// Route (GET) qui permet de récupérer un fichier sur base de son nom
+        /// </summary>
+        /// <param name="filename">le nom du fichier à récupérer</param>
+        /// <returns>Le fichier correspondant au nom donné</returns>
         [Authorize(Roles = "Member, Admin")]
         [HttpGet("{filename}")]
         [Produces("application/json")]
-        public IActionResult DownloadFile(string filename)
+        [SwaggerOperation(Summary = "Retourne un fichier sur base de son nom")]
+        [SwaggerResponse(StatusCodes.Status200OK, "Le fichier a bien été récupéré", typeof(FileResponseViewModel<string>))]
+        [SwaggerResponse(StatusCodes.Status401Unauthorized, "L'utilisateur n'est pas connecté ou son token est invalide")]
+        [SwaggerResponse(StatusCodes.Status403Forbidden, "L'utilisateur n'a pas les droits pour accéder à cette ressource")]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "Le fichier n'a pas été trouvé")]
+        public ActionResult<FileResponseViewModel<string>> DownloadFile(string filename)
         {
             File dbFile;
             var errors = new List<string>();
@@ -82,10 +111,21 @@ namespace StudentsForStudentsAPI.Controllers
             return Ok(new FileResponseViewModel<string>(content: content, isError: isError, errors));
         }
 
+        /// <summary>
+        /// Route (POST) qui permet d'ajouter un fichier au système
+        /// </summary>
+        /// <param name="request">Le potentiel nouveau fichier à ajouter</param>
+        /// <returns>Un ViewModel spécifiant si oui ou non l'opération s'est bien effectuée</returns>
         [Authorize(Roles = "Member, Admin")]
         [HttpPost]
         [Produces("application/json")]
-        public async Task<IActionResult> UploadFile(UploadFileViewModel request)
+        [SwaggerOperation(Summary = "Ajoute un fichier au système")]
+        [SwaggerResponse(StatusCodes.Status200OK, "Le fichier a bien été ajouté", typeof(FileResponseViewModel<string>))]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Le fichier n'a pas pu être ajouté")]
+        [SwaggerResponse(StatusCodes.Status401Unauthorized, "L'utilisateur n'est pas connecté ou son token est invalide")]
+        [SwaggerResponse(StatusCodes.Status403Forbidden, "L'utilisateur n'a pas les droits pour accéder à cette ressource")]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "Les informations transmises sont invalides")]
+        public async Task<ActionResult<FileResponseViewModel<string>>> UploadFile(UploadFileViewModel request)
         {
             if (!ModelState.IsValid)
             {
@@ -125,10 +165,20 @@ namespace StudentsForStudentsAPI.Controllers
             return Ok(new FileResponseViewModel<string>(isError: isError, errors));
         }
 
+        /// <summary>
+        /// Route (DELETE) qui permet de supprimer un fichier du système sur base de son nom
+        /// </summary>
+        /// <param name="filename">Le nom du fichier à supprimer</param>
+        /// <returns>Un ViewModel spécifiant si oui ou non l'opération s'est bien effectuée</returns>
         [Authorize(Roles = "Member, Admin")]
         [HttpDelete("{filename}")]
         [Produces("application/json")]
-        public async Task<IActionResult> DeleteFile(string filename)
+        [SwaggerOperation(Summary = "Supprime un fichier du système sur base de son nom")]
+        [SwaggerResponse(StatusCodes.Status200OK, "Le fichier a bien été supprimé", typeof(FileResponseViewModel<string>))]
+        [SwaggerResponse(StatusCodes.Status401Unauthorized, "L'utilisateur n'est pas connecté ou son token est invalide")]
+        [SwaggerResponse(StatusCodes.Status403Forbidden, "L'utilisateur n'a pas les droits pour accéder à cette ressource")]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "Le fichier n'a pas été trouvé")]
+        public async Task<ActionResult<FileResponseViewModel<string>>> DeleteFile(string filename)
         {
             File dbFile;
             User user;
@@ -157,11 +207,19 @@ namespace StudentsForStudentsAPI.Controllers
             return Ok(new FileResponseViewModel<string>(isError: isError, errors));
         }
 
-
+        /// <summary>
+        /// Route (GET) qui permet de récupérer les métadonnées des fichiers
+        /// </summary>
+        /// <returns>Une liste composées des métadonnées des fichiers du système</returns>
         [Authorize(Roles = "Member, Admin")]
         [HttpGet]
         [Produces("application/json")]
-        public IActionResult GetFilesMetadata()
+        [SwaggerOperation(Summary = "Retourne les métadonnées des fichiers du système")]
+        [SwaggerResponse(StatusCodes.Status200OK, "Les métadonnées des fichiers ont bien été récupérées", typeof(FileResponseViewModel<IEnumerable<FileViewModel>>))]
+        [SwaggerResponse(StatusCodes.Status401Unauthorized, "L'utilisateur n'est pas connecté ou son token est invalide")]
+        [SwaggerResponse(StatusCodes.Status403Forbidden, "L'utilisateur n'a pas les droits pour accéder à cette ressource")]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "Les métadonnées des fichiers n'ont pas pu être récupérées")]
+        public ActionResult<FileResponseViewModel<IEnumerable<FileViewModel>>> GetFilesMetadata()
         {
             List<File> files = new List<File>();
             var isError = false;

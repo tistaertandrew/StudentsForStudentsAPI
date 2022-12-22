@@ -29,36 +29,43 @@ namespace StudentsForStudentsAPI.Models.DbModels
             string? locality = null;
             string requestUri = string.Format(config["AppSettings:GoogleMapApiUrl"], Uri.EscapeDataString(fullAddress), config["AppSettings:GoogleApiKey"]);
 
-            using var client = new HttpClient();
-            var resp = client.GetAsync(requestUri).Result;
-            var content = resp.Content.ReadAsStringAsync().Result;
-            var xml = XDocument.Parse(content);
-            var elements = xml.Element("GeocodeResponse")?.Element("result")?.Elements("address_component");
-
-            if (elements == null || !elements.Any()) return null;
-
-            foreach (var element in elements)
+            try
             {
-                switch (element.Element("type")!.Value)
+                using var client = new HttpClient();
+                var resp = client.GetAsync(requestUri).Result;
+                var content = resp.Content.ReadAsStringAsync().Result;
+                var xml = XDocument.Parse(content);
+                var elements = xml.Element("GeocodeResponse")?.Element("result")?.Elements("address_component");
+
+                if (elements == null || !elements.Any()) return null;
+
+                foreach (var element in elements)
                 {
-                    case "route":
-                        street = element.Element("long_name")!.Value;
-                        break;
-                    case "street_number":
-                        number = element.Element("long_name")!.Value;
-                        break;
-                    case "locality":
-                        locality = element.Element("long_name")!.Value;
-                        break;
-                    case "postal_code":
-                        postalCode = int.Parse(element.Element("long_name")!.Value);
-                        break;
+                    switch (element.Element("type")!.Value)
+                    {
+                        case "route":
+                            street = element.Element("long_name")!.Value;
+                            break;
+                        case "street_number":
+                            number = element.Element("long_name")!.Value;
+                            break;
+                        case "locality":
+                            locality = element.Element("long_name")!.Value;
+                            break;
+                        case "postal_code":
+                            postalCode = int.Parse(element.Element("long_name")!.Value);
+                            break;
+                    }
                 }
+
+                if (street == null || number == null || postalCode == -1 || locality == null) return null;
+
+                return new PlaceDto() { Street = street, Number = number, PostalCode = postalCode, Locality = locality };
             }
-
-            if (street == null || number == null || postalCode == -1 || locality == null) return null;
-
-            return new PlaceDto() { Street = street, Number = number, PostalCode = postalCode, Locality = locality };
+            catch (Exception)
+            {
+                return null;
+            }
         }
     }
 }
